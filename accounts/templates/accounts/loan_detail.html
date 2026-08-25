@@ -1,0 +1,111 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Loan Details
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Loan Details</h1>
+
+    <br>
+
+    <div class="card">
+
+        <h2>
+            {{ loan.account.account_number }}
+            <span
+                class="
+                    transaction-status
+                    {% if loan.status == 'ACTIVE' %}
+                        transaction-status-completed
+                    {% elif loan.status == 'DEFAULTED' %}
+                        transaction-status-failed
+                    {% else %}
+                        transaction-status-pending
+                    {% endif %}
+                "
+            >
+                {{ loan.get_status_display }}
+            </span>
+        </h2>
+
+        <hr>
+
+        <p><strong>Customer:</strong> {{ loan.account.customer.name }}</p>
+        <p><strong>Principal:</strong> ৳{{ loan.principal|floatformat:2 }}</p>
+        <p><strong>Annual Rate:</strong> {{ loan.annual_rate }}%</p>
+        <p><strong>Term:</strong> {{ loan.months }} months</p>
+        <p><strong>Start Date:</strong> {{ loan.start_date|date:"M d, Y" }}</p>
+        <p><strong>Monthly EMI:</strong> ৳{{ emi|floatformat:2 }}</p>
+        <p><strong>Total Payable:</strong> ৳{{ total_payable|floatformat:2 }}</p>
+        <p><strong>Total Interest:</strong> ৳{{ total_interest|floatformat:2 }}</p>
+
+    </div>
+
+    <br>
+
+    {% if loan.status == 'ACTIVE' %}
+
+        <form method="post" action="{% url 'loan_close' loan.id %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit">
+                Mark as Closed
+            </button>
+        </form>
+
+        <br><br>
+
+    {% endif %}
+
+    <h2>Amortization Schedule</h2>
+
+    <div class="transaction-table-wrapper">
+
+        <table class="transaction-table">
+
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Date</th>
+                    <th>Opening Balance</th>
+                    <th>EMI</th>
+                    <th>Interest</th>
+                    <th>Principal</th>
+                    <th>Closing Balance</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for row in schedule %}
+
+                <tr>
+                    <td>{{ row.month_no }}</td>
+                    <td>{{ row.date|date:"M d, Y" }}</td>
+                    <td>৳{{ row.opening_balance|floatformat:2 }}</td>
+                    <td class="transaction-amount">৳{{ row.emi|floatformat:2 }}</td>
+                    <td>৳{{ row.interest|floatformat:2 }}</td>
+                    <td>৳{{ row.principal|floatformat:2 }}</td>
+                    <td>৳{{ row.closing_balance|floatformat:2 }}</td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <br>
+
+    <a href="{% url 'loan_list' %}">
+        ← Back to Loans
+    </a>
+
+</div>
+
+{% endblock %}

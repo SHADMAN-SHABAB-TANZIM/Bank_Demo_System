@@ -1,0 +1,84 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Delete Transaction
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Delete Transaction</h1>
+
+    <br>
+
+    <div class="card">
+
+        <h2>Are you sure?</h2>
+
+        <p>
+            You are about to delete the following transaction.
+            This will reverse its effect on the account balance.
+        </p>
+
+        <p>
+            <strong>Reference:</strong>
+            {{ transaction.reference }}
+        </p>
+
+        <p>
+            <strong>Account:</strong>
+            {{ transaction.account.account_number }}
+        </p>
+
+        <p>
+            <strong>Type:</strong>
+            {{ transaction.get_transaction_type_display }}
+        </p>
+
+        <p>
+            <strong>Amount:</strong>
+            ৳{{ transaction.amount|floatformat:2 }}
+        </p>
+
+        {% if error %}
+
+            <p class="form-error">
+                {{ error }}
+            </p>
+
+        {% else %}
+
+            <br>
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                <button type="submit">
+                    Yes, Delete
+                </button>
+
+                <a href="{% url 'transaction_detail' transaction.id %}">
+                    Cancel
+                </a>
+
+            </form>
+
+        {% endif %}
+
+        {% if error %}
+
+            <br>
+
+            <a href="{% url 'transaction_detail' transaction.id %}">
+                Back to Transaction
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

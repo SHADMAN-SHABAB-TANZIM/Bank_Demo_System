@@ -1,0 +1,426 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+    Account Statement
+{% endblock %}
+
+{% block content %}
+
+<div class="account-statement-page">
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <div class="statement-header">
+
+        <div>
+
+            <p class="statement-eyebrow">
+                Account Statement
+            </p>
+
+            <h1>
+                Account Statement
+            </h1>
+
+            <p class="statement-subtitle">
+                View account information and transaction history.
+            </p>
+
+        </div>
+
+        <div class="statement-header-actions">
+
+            <a
+                href="{% url 'bank_account_statement_csv' account.id %}"
+                class="statement-back-button"
+            >
+                ↓ Download CSV
+            </a>
+
+            <a
+                href="{% url 'bank_account_list' %}"
+                class="statement-back-button"
+            >
+                ← Back to Accounts
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         ACCOUNT SUMMARY
+         ===================================================== -->
+
+    <div class="account-summary-card">
+
+        <div class="account-summary-top">
+
+            <div>
+
+                <p class="account-label">
+                    ACCOUNT NUMBER
+                </p>
+
+                <h2 class="account-number">
+                    {{ account.account_number }}
+                </h2>
+
+            </div>
+
+
+            <div class="account-status-badge">
+
+                {{ account.get_status_display }}
+
+            </div>
+
+        </div>
+
+
+        <div class="account-summary-divider"></div>
+
+
+        <div class="account-summary-grid">
+
+            <!-- Customer -->
+
+            <div class="account-summary-item">
+
+                <span class="summary-label">
+                    Customer
+                </span>
+
+                <span class="summary-value">
+                    {{ account.customer.name }}
+                </span>
+
+            </div>
+
+
+            <!-- Email -->
+
+            <div class="account-summary-item">
+
+                <span class="summary-label">
+                    Email
+                </span>
+
+                <span class="summary-value">
+                    {{ account.customer.email }}
+                </span>
+
+            </div>
+
+
+            <!-- Account Type -->
+
+            <div class="account-summary-item">
+
+                <span class="summary-label">
+                    Account Type
+                </span>
+
+                <span class="summary-value">
+                    {{ account.get_account_type_display }}
+                </span>
+
+            </div>
+
+
+            <!-- Created -->
+
+            <div class="account-summary-item">
+
+                <span class="summary-label">
+                    Created
+                </span>
+
+                <span class="summary-value">
+                    {{ account.created_at|date:"M d, Y" }}
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- Balance -->
+
+        <div class="account-balance-section">
+
+            <span class="balance-label">
+                Current Balance
+            </span>
+
+            <div class="account-balance">
+                ৳{{ account.balance|floatformat:2 }}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         TRANSACTION HISTORY
+         ===================================================== -->
+
+    <div class="statement-transactions-card">
+
+        <!-- Header -->
+
+        <div class="statement-transactions-header">
+
+            <div>
+
+                <h2>
+                    Transaction History
+                </h2>
+
+                <p>
+                    Recent transactions for
+                    <strong>
+                        {{ account.account_number }}
+                    </strong>
+                </p>
+
+            </div>
+
+
+            <a
+                href="{% url 'transaction_list' %}?search={{ account.account_number }}"
+                class="view-all-transactions"
+            >
+
+                View All
+
+                <span>
+                    →
+                </span>
+
+            </a>
+
+        </div>
+
+
+        <!-- =================================================
+             TRANSACTIONS
+             ================================================= -->
+
+        <div class="transaction-history-list">
+
+            {% if transactions %}
+
+                {% for transaction in transactions %}
+
+                    <div class="statement-transaction-row">
+
+
+                        <!-- Transaction Icon -->
+
+                        <div
+                            class="
+                                transaction-icon
+                                {% if transaction.transaction_type == 'DEPOSIT' %}
+                                    transaction-icon-deposit
+                                {% elif transaction.transaction_type == 'WITHDRAW' %}
+                                    transaction-icon-withdraw
+                                {% elif transaction.transaction_type == 'TRANSFER' %}
+                                    transaction-icon-transfer
+                                {% endif %}
+                            "
+                        >
+
+                            {% if transaction.transaction_type == 'DEPOSIT' %}
+
+                                +
+
+                            {% elif transaction.transaction_type == 'WITHDRAW' %}
+
+                                −
+
+                            {% elif transaction.transaction_type == 'TRANSFER' %}
+
+                                ↔
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- Transaction Information -->
+
+                        <div class="statement-transaction-main">
+
+                            <div class="statement-transaction-type">
+
+                                {{ transaction.get_transaction_type_display }}
+
+                            </div>
+
+                            <div class="statement-transaction-reference">
+
+                                {{ transaction.reference }}
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Amount -->
+
+                        <div
+                            class="
+                                statement-transaction-amount
+                                {% if transaction.transaction_type == 'DEPOSIT' %}
+                                    amount-positive
+                                {% elif transaction.transaction_type == 'WITHDRAW' %}
+                                    amount-negative
+                                {% else %}
+                                    amount-transfer
+                                {% endif %}
+                            "
+                        >
+
+                            {% if transaction.transaction_type == 'DEPOSIT' %}
+
+                                +
+
+                            {% elif transaction.transaction_type == 'WITHDRAW' %}
+
+                                −
+
+                            {% endif %}
+
+                            ৳{{ transaction.amount|floatformat:2 }}
+
+                        </div>
+
+
+                        <!-- Status -->
+
+                        <div class="statement-transaction-status">
+
+                            <span class="transaction-status-badge">
+
+                                {{ transaction.get_status_display }}
+
+                            </span>
+
+                        </div>
+
+
+                        <!-- Date -->
+
+                        <div class="statement-transaction-date">
+
+                            {{ transaction.created_at|date:"M d, Y" }}
+
+                            <small>
+
+                                {{ transaction.created_at|date:"g:i a" }}
+
+                            </small>
+
+                        </div>
+
+
+                        <!-- View -->
+
+                        <a
+                            href="{% url 'transaction_detail' transaction.id %}"
+                            class="statement-transaction-view"
+                        >
+
+                            View
+
+                            <span>
+                                →
+                            </span>
+
+                        </a>
+
+                    </div>
+
+                {% endfor %}
+
+
+            {% else %}
+
+                <!-- =================================================
+                     EMPTY STATE
+                     ================================================= -->
+
+                <div class="statement-empty-state">
+
+                    <div class="empty-transaction-icon">
+                        —
+                    </div>
+
+                    <h3>
+                        No Transactions
+                    </h3>
+
+                    <p>
+                        This account does not have any transactions yet.
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PAGINATION
+         ===================================================== -->
+
+    {% if page_obj.paginator.num_pages > 1 %}
+
+        <div class="statement-pagination">
+
+            {% if page_obj.has_previous %}
+
+                <a
+                    href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if transaction_type %}&transaction_type={{ transaction_type }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}"
+                >
+                    ← Previous
+                </a>
+
+            {% endif %}
+
+
+            <span>
+
+                Page
+                {{ page_obj.number }}
+                of
+                {{ page_obj.paginator.num_pages }}
+
+            </span>
+
+
+            {% if page_obj.has_next %}
+
+                <a
+                    href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if transaction_type %}&transaction_type={{ transaction_type }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}"
+                >
+                    Next →
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,365 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Bank Accounts
+{% endblock %}
+
+{% block content %}
+
+<div class="accounts-page">
+
+    <!-- =====================================================
+         PAGE HEADER
+         ===================================================== -->
+
+    <div class="accounts-page-header">
+
+        <div>
+
+            <p class="accounts-eyebrow">
+                BANKING
+            </p>
+
+            <h1>
+                Bank Accounts
+            </h1>
+
+            <p class="accounts-subtitle">
+                Manage customer accounts, balances and account status.
+            </p>
+
+        </div>
+
+
+        <a
+            href="{% url 'bank_account_create' %}"
+            class="accounts-primary-button"
+        >
+            + Add Bank Account
+        </a>
+
+    </div>
+
+
+    <!-- =====================================================
+         SEARCH / FILTER
+         ===================================================== -->
+
+    <form
+        method="get"
+        class="transaction-filter"
+    >
+
+        <div class="transaction-search">
+
+            <input
+                type="text"
+                name="search"
+                value="{{ search }}"
+                placeholder="Search account number, customer name or email..."
+            >
+
+        </div>
+
+
+        <div class="transaction-filter-group">
+
+            <select name="account_type">
+
+                <option value="">
+                    All Types
+                </option>
+
+                <option value="SAVINGS" {% if account_type == "SAVINGS" %}selected{% endif %}>
+                    Savings
+                </option>
+
+                <option value="CURRENT" {% if account_type == "CURRENT" %}selected{% endif %}>
+                    Current
+                </option>
+
+            </select>
+
+
+            <select name="status">
+
+                <option value="">
+                    All Status
+                </option>
+
+                <option value="ACTIVE" {% if status == "ACTIVE" %}selected{% endif %}>
+                    Active
+                </option>
+
+                <option value="BLOCKED" {% if status == "BLOCKED" %}selected{% endif %}>
+                    Blocked
+                </option>
+
+                <option value="CLOSED" {% if status == "CLOSED" %}selected{% endif %}>
+                    Closed
+                </option>
+
+            </select>
+
+
+            <button type="submit">
+                Search
+            </button>
+
+
+            {% if search or account_type or status %}
+
+                <a href="{% url 'bank_account_list' %}" class="clear-filter">
+                    Clear
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    </form>
+
+
+    <!-- =====================================================
+         ACCOUNT LIST
+         ===================================================== -->
+
+    {% if bank_accounts %}
+
+        <div class="accounts-list">
+
+            {% for account in bank_accounts %}
+
+                <div class="bank-account-card">
+
+                    <!-- =================================================
+                         CARD HEADER
+                         ================================================= -->
+
+                    <div class="bank-account-card-header">
+
+                        <div>
+
+                            <span class="bank-account-label">
+                                ACCOUNT NUMBER
+                            </span>
+
+                            <h2 class="bank-account-number">
+                                {{ account.account_number }}
+                            </h2>
+
+                        </div>
+
+
+                        <!-- STATUS -->
+
+                        <span
+                            class="
+                                bank-account-status
+                                bank-account-status-{{ account.status|lower }}
+                            "
+                        >
+                            {{ account.get_status_display }}
+                        </span>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         DIVIDER
+                         ================================================= -->
+
+                    <div class="bank-account-divider"></div>
+
+
+                    <!-- =================================================
+                         ACCOUNT INFORMATION
+                         ================================================= -->
+
+                    <div class="bank-account-info-grid">
+
+
+                        <!-- CUSTOMER -->
+
+                        <div class="bank-account-info">
+
+                            <span class="bank-account-info-label">
+                                Customer
+                            </span>
+
+                            <span class="bank-account-info-value">
+                                {{ account.customer.name }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- ACCOUNT TYPE -->
+
+                        <div class="bank-account-info">
+
+                            <span class="bank-account-info-label">
+                                Account Type
+                            </span>
+
+                            <span class="bank-account-info-value">
+                                {{ account.get_account_type_display }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- CREATED -->
+
+                        <div class="bank-account-info">
+
+                            <span class="bank-account-info-label">
+                                Created
+                            </span>
+
+                            <span class="bank-account-info-value">
+                                {{ account.created_at|date:"M d, Y" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- BALANCE -->
+
+                        <div class="bank-account-info">
+
+                            <span class="bank-account-info-label">
+                                Current Balance
+                            </span>
+
+                            <span class="bank-account-balance">
+                                ৳{{ account.balance|floatformat:2 }}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         CARD FOOTER
+                         ================================================= -->
+
+                    <div class="bank-account-card-footer">
+
+
+                        <!-- VIEW -->
+
+                        <a
+                            href="{% url 'bank_account_detail' account.id %}"
+                            class="bank-account-action bank-account-view"
+                        >
+                            View Statement
+                            <span>→</span>
+                        </a>
+
+
+                        <div class="bank-account-secondary-actions">
+
+
+                            <!-- EDIT -->
+
+                            <a
+                                href="{% url 'bank_account_update' account.id %}"
+                                class="bank-account-action"
+                            >
+                                Edit
+                            </a>
+
+
+                            <!-- DELETE -->
+
+                            <a
+                                href="{% url 'bank_account_delete' account.id %}"
+                                class="bank-account-action bank-account-delete"
+                            >
+                                Delete
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+
+        <!-- =====================================================
+             PAGINATION
+             ===================================================== -->
+
+        {% if page_obj.has_other_pages %}
+
+            <div class="pagination">
+
+                {% if page_obj.has_previous %}
+                    <a href="?page=1{% if search %}&search={{ search }}{% endif %}{% if account_type %}&account_type={{ account_type }}{% endif %}{% if status %}&status={{ status }}{% endif %}">
+                        First
+                    </a>
+
+                    <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if account_type %}&account_type={{ account_type }}{% endif %}{% if status %}&status={{ status }}{% endif %}">
+                        Previous
+                    </a>
+                {% endif %}
+
+                <span>
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if account_type %}&account_type={{ account_type }}{% endif %}{% if status %}&status={{ status }}{% endif %}">
+                        Next
+                    </a>
+
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if account_type %}&account_type={{ account_type }}{% endif %}{% if status %}&status={{ status }}{% endif %}">
+                        Last
+                    </a>
+                {% endif %}
+
+            </div>
+
+        {% endif %}
+
+
+    {% else %}
+
+        <!-- =====================================================
+             EMPTY STATE
+             ===================================================== -->
+
+        <div class="accounts-empty-state">
+
+            <div class="accounts-empty-icon">
+                —
+            </div>
+
+            <h2>
+                No Bank Accounts
+            </h2>
+
+            <p>
+                There are currently no bank accounts in the system.
+            </p>
+
+            <a
+                href="{% url 'bank_account_create' %}"
+                class="accounts-primary-button"
+            >
+                + Add Bank Account
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

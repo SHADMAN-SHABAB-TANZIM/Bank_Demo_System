@@ -1,0 +1,75 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>{{ title }}</h1>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        {{ form.non_field_errors }}
+
+        <div class="form-group">
+            {{ form.name.label_tag }}
+            {{ form.name }}
+            {% for error in form.name.errors %}
+                <p class="form-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.code.label_tag }}
+            {{ form.code }}
+            {% for error in form.code.errors %}
+                <p class="form-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.address.label_tag }}
+            {{ form.address }}
+            {% for error in form.address.errors %}
+                <p class="form-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.phone.label_tag }}
+            {{ form.phone }}
+            {% for error in form.phone.errors %}
+                <p class="form-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.is_active.label_tag }}
+            {{ form.is_active }}
+            {% for error in form.is_active.errors %}
+                <p class="form-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="primary-button">
+            {% if branch %}
+                Update Branch
+            {% else %}
+                Create Branch
+            {% endif %}
+        </button>
+
+        <a href="{% url 'branch_list' %}">
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

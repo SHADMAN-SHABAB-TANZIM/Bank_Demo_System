@@ -1,0 +1,60 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Deactivate Customer
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Deactivate Customer</h1>
+
+    <br>
+
+    <div class="card">
+
+        <h2>Are you sure?</h2>
+
+        <p>
+            This customer will be hidden from the active customer
+            list, but kept on record. You can reactivate them at
+            any time - nothing is deleted.
+        </p>
+
+        <p>
+            <strong>Customer ID:</strong>
+            {{ customer.id }}
+        </p>
+
+        <p>
+            <strong>Name:</strong>
+            {{ customer.name }}
+        </p>
+
+        <p>
+            <strong>Email:</strong>
+            {{ customer.email }}
+        </p>
+
+        <br>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <button type="submit">
+                Yes, Deactivate
+            </button>
+
+            <a href="{% url 'customer_detail' customer.id %}">
+                Cancel
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

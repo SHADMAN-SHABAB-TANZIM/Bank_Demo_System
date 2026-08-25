@@ -1,0 +1,71 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>{{ title }}</h1>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        {{ form.non_field_errors }}
+
+        <div class="form-group">
+            {{ form.account.label_tag }}
+            {{ form.account }}
+            {% for error in form.account.errors %}
+                <p class="form-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.principal.label_tag }}
+            {{ form.principal }}
+            {% for error in form.principal.errors %}
+                <p class="form-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.annual_rate.label_tag }}
+            {{ form.annual_rate }}
+            {% for error in form.annual_rate.errors %}
+                <p class="form-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.months.label_tag }}
+            {{ form.months }}
+            {% for error in form.months.errors %}
+                <p class="form-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.start_date.label_tag }}
+            {{ form.start_date }}
+            {% for error in form.start_date.errors %}
+                <p class="form-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="primary-button">
+            Create Loan
+        </button>
+
+        <a href="{% url 'loan_list' %}">
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

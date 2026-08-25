@@ -1,0 +1,104 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Customer Details
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Customer Details</h1>
+
+    <div class="card">
+
+        <h2>
+            {{ customer.name }}
+
+            {% if customer.is_active %}
+                <span class="transaction-status transaction-status-completed">
+                    Active
+                </span>
+            {% else %}
+                <span class="transaction-status transaction-status-failed">
+                    Inactive
+                </span>
+            {% endif %}
+        </h2>
+
+        <p>
+            <strong>Customer ID:</strong>
+            {{ customer.id }}
+        </p>
+
+        <p>
+            <strong>Email:</strong>
+            {{ customer.email }}
+        </p>
+
+        <p>
+            <strong>Phone:</strong>
+            {{ customer.phone }}
+        </p>
+
+        <p>
+            <strong>National ID:</strong>
+            {{ customer.nid|default:"—" }}
+        </p>
+
+        <p>
+            <strong>Address:</strong>
+            {{ customer.address }}
+        </p>
+
+        <p>
+            <strong>Created At:</strong>
+            {{ customer.created_at }}
+        </p>
+
+    </div>
+
+    <br>
+
+    <a href="{% url 'customer_update' customer.id %}">
+        Edit Customer
+    </a>
+
+    <br><br>
+
+    {% if customer.is_active %}
+
+        <a href="{% url 'customer_deactivate' customer.id %}">
+            Deactivate Customer
+        </a>
+
+    {% else %}
+
+        <form
+            method="post"
+            action="{% url 'customer_reactivate' customer.id %}"
+            style="display:inline;"
+        >
+            {% csrf_token %}
+            <button type="submit" class="link-button">
+                Reactivate Customer
+            </button>
+        </form>
+
+    {% endif %}
+
+    <br><br>
+
+    <a href="{% url 'customer_delete' customer.id %}">
+        Delete Customer
+    </a>
+
+    <br><br>
+
+    <a href="{% url 'customer_list' %}">
+        Back to Customers
+    </a>
+
+</div>
+
+{% endblock %}

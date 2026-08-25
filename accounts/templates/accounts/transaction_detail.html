@@ -1,0 +1,108 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Transaction Details
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Transaction Details</h1>
+
+    <br>
+
+    <div class="card">
+
+        <h2>
+            {{ transaction.transaction_type }}
+        </h2>
+
+        <hr>
+
+        <p>
+            <strong>Reference:</strong>
+            {{ transaction.reference }}
+        </p>
+
+        <p>
+            <strong>Account:</strong>
+            {{ transaction.account.account_number }}
+        </p>
+
+        <p>
+            <strong>Customer:</strong>
+            {{ transaction.account.customer.name }}
+        </p>
+
+        {% if transaction.destination_account %}
+
+            <p>
+                <strong>Destination Account:</strong>
+                {{ transaction.destination_account.account_number }}
+            </p>
+
+            <p>
+                <strong>Destination Customer:</strong>
+                {{ transaction.destination_account.customer.name }}
+            </p>
+
+        {% endif %}
+
+        <p>
+            <strong>Transaction Type:</strong>
+            {{ transaction.get_transaction_type_display }}
+        </p>
+
+        <p>
+            <strong>Amount:</strong>
+            ৳{{ transaction.amount }}
+        </p>
+
+        <p>
+            <strong>Balance After:</strong>
+            ৳{{ transaction.balance_after }}
+        </p>
+
+        <p>
+            <strong>Status:</strong>
+            {{ transaction.get_status_display }}
+        </p>
+
+        {% if transaction.description %}
+
+            <p>
+                <strong>Description:</strong>
+                {{ transaction.description }}
+            </p>
+
+        {% endif %}
+
+        <p>
+            <strong>Date:</strong>
+            {{ transaction.created_at }}
+        </p>
+
+    </div>
+
+    <br>
+
+    <a href="{% url 'transaction_update' transaction.id %}">
+        Edit Transaction
+    </a>
+
+    <br><br>
+
+    <a href="{% url 'transaction_delete' transaction.id %}">
+        Delete Transaction
+    </a>
+
+    <br><br>
+
+    <a href="{% url 'transaction_list' %}">
+        ← Back to Transactions
+    </a>
+
+</div>
+
+{% endblock %}

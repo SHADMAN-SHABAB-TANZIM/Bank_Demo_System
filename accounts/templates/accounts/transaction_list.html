@@ -1,0 +1,356 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Transactions
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="page-header">
+        <div>
+            <h1>Transactions</h1>
+
+            <p class="page-subtitle">
+                View all banking transactions
+            </p>
+        </div>
+
+        <a
+            href="{% url 'transaction_create' %}"
+            class="primary-link"
+        >
+            New Transaction
+        </a>
+
+        <a
+            href="{% url 'transaction_export_csv' %}?{{ request.GET.urlencode }}"
+            class="primary-link"
+        >
+            Export CSV
+        </a>
+    </div>
+
+
+    <!-- =====================================================
+         TRANSACTION FILTER
+    ====================================================== -->
+
+    <form
+        method="get"
+        class="transaction-filter"
+    >
+
+        <!-- Search -->
+
+        <div class="transaction-search">
+
+            <input
+                type="text"
+                name="search"
+                value="{{ search }}"
+                placeholder="Search reference, account or customer..."
+            >
+
+        </div>
+
+
+        <div class="transaction-filter-group">
+
+            <!-- Transaction Type -->
+
+            <select name="transaction_type">
+
+                <option value="">
+                    All Types
+                </option>
+
+                <option
+                    value="DEPOSIT"
+                    {% if transaction_type == "DEPOSIT" %}
+                        selected
+                    {% endif %}
+                >
+                    Deposit
+                </option>
+
+                <option
+                    value="WITHDRAW"
+                    {% if transaction_type == "WITHDRAW" %}
+                        selected
+                    {% endif %}
+                >
+                    Withdrawal
+                </option>
+
+                <option
+                    value="TRANSFER"
+                    {% if transaction_type == "TRANSFER" %}
+                        selected
+                    {% endif %}
+                >
+                    Transfer
+                </option>
+
+            </select>
+
+
+            <!-- Status -->
+
+            <select name="status">
+
+                <option value="">
+                    All Status
+                </option>
+
+                <option
+                    value="COMPLETED"
+                    {% if status == "COMPLETED" %}
+                        selected
+                    {% endif %}
+                >
+                    Completed
+                </option>
+
+                <option
+                    value="PENDING"
+                    {% if status == "PENDING" %}
+                        selected
+                    {% endif %}
+                >
+                    Pending
+                </option>
+
+                <option
+                    value="FAILED"
+                    {% if status == "FAILED" %}
+                        selected
+                    {% endif %}
+                >
+                    Failed
+                </option>
+
+            </select>
+
+
+            <!-- Search Button -->
+
+            <button type="submit">
+                Search
+            </button>
+
+
+            <!-- Clear -->
+
+            {% if search or transaction_type or status %}
+
+                <a
+                    href="{% url 'transaction_list' %}"
+                    class="clear-filter"
+                >
+                    Clear
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    </form>
+
+
+    <!-- =====================================================
+         TRANSACTION TABLE
+    ====================================================== -->
+
+    {% if transactions %}
+
+        <div class="transaction-table-wrapper">
+
+            <table class="transaction-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Reference
+                        </th>
+
+                        <th>
+                            Account
+                        </th>
+
+                        <th>
+                            Customer
+                        </th>
+
+                        <th>
+                            Type
+                        </th>
+
+                        <th>
+                            Amount
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th>
+                            Date
+                        </th>
+
+                        <th>
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for transaction in transactions %}
+
+                    <tr>
+
+                        <!-- Reference -->
+
+                        <td>
+
+                            <div class="transaction-reference">
+
+                                {{ transaction.reference }}
+
+                            </div>
+
+                        </td>
+
+
+                        <!-- Account -->
+
+                        <td>
+
+                            {{ transaction.account.account_number }}
+
+                        </td>
+
+
+                        <!-- Customer -->
+
+                        <td>
+
+                            {{ transaction.account.customer.name }}
+
+                        </td>
+
+
+                        <!-- Type -->
+
+                        <td>
+
+                            <span
+                                class="
+                                    transaction-type
+                                    transaction-type-{{ transaction.transaction_type|lower }}
+                                "
+                            >
+
+                                {{ transaction.transaction_type }}
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- Amount -->
+
+                        <td class="transaction-amount">
+
+                            ৳{{ transaction.amount|floatformat:2 }}
+
+                        </td>
+
+
+                        <!-- Status -->
+
+                        <td>
+
+                            <span
+                                class="
+                                    transaction-status
+                                    transaction-status-{{ transaction.status|lower }}
+                                "
+                            >
+
+                                {{ transaction.status }}
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- Date -->
+
+                        <td>
+
+                            {{ transaction.created_at|date:"M d, Y, g:i a" }}
+
+                        </td>
+
+
+                        <!-- Action -->
+
+                        <td>
+
+                            <a
+                                href="{% url 'transaction_detail' transaction.id %}"
+                                class="transaction-view"
+                            >
+                                View
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+    {% else %}
+
+        <!-- No Transactions -->
+
+        <div class="no-transactions">
+
+            <h2>
+                No Transactions
+            </h2>
+
+            <p>
+                There are currently no transactions
+                matching your search.
+            </p>
+
+            <a
+                href="{% url 'transaction_create' %}"
+            >
+                Create Transaction
+            </a>
+
+        </div>
+
+    {% endif %}
+
+
+</div>
+
+{% endblock %}

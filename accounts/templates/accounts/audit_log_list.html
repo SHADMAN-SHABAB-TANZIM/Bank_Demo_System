@@ -1,0 +1,226 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Audit Log
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="page-header">
+        <div>
+            <h1>Audit Log</h1>
+
+            <p class="page-subtitle">
+                A trail of who created, updated, or deleted what
+            </p>
+        </div>
+    </div>
+
+
+    <!-- =====================================================
+         FILTER
+    ====================================================== -->
+
+    <form
+        method="get"
+        class="transaction-filter"
+    >
+
+        <div class="transaction-search">
+
+            <input
+                type="text"
+                name="search"
+                value="{{ search }}"
+                placeholder="Search by user, record name, or ID..."
+            >
+
+        </div>
+
+
+        <div class="transaction-filter-group">
+
+            <select name="action">
+
+                <option value="">
+                    All Actions
+                </option>
+
+                <option value="CREATE" {% if action == "CREATE" %}selected{% endif %}>
+                    Create
+                </option>
+
+                <option value="UPDATE" {% if action == "UPDATE" %}selected{% endif %}>
+                    Update
+                </option>
+
+                <option value="DELETE" {% if action == "DELETE" %}selected{% endif %}>
+                    Delete
+                </option>
+
+            </select>
+
+
+            <select name="model_name">
+
+                <option value="">
+                    All Models
+                </option>
+
+                {% for choice in model_choices %}
+
+                    <option value="{{ choice }}" {% if model_name == choice %}selected{% endif %}>
+                        {{ choice }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+
+            <button type="submit">
+                Search
+            </button>
+
+
+            {% if search or action or model_name %}
+
+                <a href="{% url 'audit_log_list' %}" class="clear-filter">
+                    Clear
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    </form>
+
+
+    <!-- =====================================================
+         TABLE
+    ====================================================== -->
+
+    {% if logs %}
+
+        <div class="transaction-table-wrapper">
+
+            <table class="transaction-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Date</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Model</th>
+                        <th>Record</th>
+                        <th>Note</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for log in logs %}
+
+                    <tr>
+
+                        <td>
+                            {{ log.created_at|date:"M d, Y, g:i a" }}
+                        </td>
+
+                        <td>
+                            {{ log.user.username|default:"system" }}
+                        </td>
+
+                        <td>
+
+                            <span
+                                class="
+                                    transaction-type
+                                    {% if log.action == 'CREATE' %}
+                                        transaction-type-deposit
+                                    {% elif log.action == 'DELETE' %}
+                                        transaction-type-withdraw
+                                    {% else %}
+                                        transaction-type-transfer
+                                    {% endif %}
+                                "
+                            >
+                                {{ log.get_action_display }}
+                            </span>
+
+                        </td>
+
+                        <td>
+                            {{ log.model_name }}
+                        </td>
+
+                        <td>
+                            {{ log.object_repr }}
+                            <br>
+                            <small>#{{ log.object_id }}</small>
+                        </td>
+
+                        <td>
+                            {{ log.note|default:"—" }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+
+            <div class="pagination">
+
+                {% if page_obj.has_previous %}
+                    <a href="?page=1{% if search %}&search={{ search }}{% endif %}{% if action %}&action={{ action }}{% endif %}{% if model_name %}&model_name={{ model_name }}{% endif %}">
+                        First
+                    </a>
+
+                    <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if action %}&action={{ action }}{% endif %}{% if model_name %}&model_name={{ model_name }}{% endif %}">
+                        Previous
+                    </a>
+                {% endif %}
+
+                <span>
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if action %}&action={{ action }}{% endif %}{% if model_name %}&model_name={{ model_name }}{% endif %}">
+                        Next
+                    </a>
+
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if action %}&action={{ action }}{% endif %}{% if model_name %}&model_name={{ model_name }}{% endif %}">
+                        Last
+                    </a>
+                {% endif %}
+
+            </div>
+
+        {% endif %}
+
+    {% else %}
+
+        <div class="no-transactions">
+            <h2>No Activity Yet</h2>
+            <p>Actions taken across the system will appear here.</p>
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

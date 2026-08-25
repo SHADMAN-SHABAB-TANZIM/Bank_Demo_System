@@ -1,0 +1,130 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Employees
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="page-header">
+        <div>
+            <h1>Employees</h1>
+
+            <p class="page-subtitle">
+                Staff roles and branch assignments
+            </p>
+        </div>
+
+        <a
+            href="{% url 'employee_assign' %}"
+            class="primary-link"
+        >
+            + Assign Role
+        </a>
+    </div>
+
+
+    {% if employees %}
+
+        <div class="transaction-table-wrapper">
+
+            <table class="transaction-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Branch</th>
+                        <th>Employee ID</th>
+                        <th>Action</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for profile in employees %}
+
+                    <tr>
+
+                        <td>{{ profile.user.username }}</td>
+
+                        <td>
+                            <span class="transaction-type transaction-type-transfer">
+                                {{ profile.get_role_display }}
+                            </span>
+                        </td>
+
+                        <td>{{ profile.branch|default:"— (all branches)" }}</td>
+
+                        <td>{{ profile.employee_id|default:"—" }}</td>
+
+                        <td>
+
+                            <a
+                                href="{% url 'employee_update' profile.id %}"
+                                class="transaction-view"
+                            >
+                                Edit
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <div class="no-transactions">
+
+            <h2>No Roles Assigned Yet</h2>
+
+            <p>
+                Assign a role and branch to a user to get started.
+            </p>
+
+            <a href="{% url 'employee_assign' %}">
+                + Assign Role
+            </a>
+
+        </div>
+
+    {% endif %}
+
+
+    {% if unassigned_users %}
+
+        <br>
+
+        <h2>Users Without a Role</h2>
+
+        <p class="page-subtitle">
+            These accounts exist but have no EmployeeProfile - they're
+            treated as unscoped (see all branches) until assigned one.
+        </p>
+
+        <ul>
+
+            {% for u in unassigned_users %}
+
+                <li>{{ u.username }}</li>
+
+            {% endfor %}
+
+        </ul>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Branches
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="page-header">
+        <div>
+            <h1>Branches</h1>
+
+            <p class="page-subtitle">
+                Manage branch locations and see per-branch totals
+            </p>
+        </div>
+
+        <a
+            href="{% url 'branch_create' %}"
+            class="primary-link"
+        >
+            + Add Branch
+        </a>
+    </div>
+
+
+    {% if branches %}
+
+        <div class="transaction-table-wrapper">
+
+            <table class="transaction-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Customers</th>
+                        <th>Accounts</th>
+                        <th>Employees</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for branch in branches %}
+
+                    <tr>
+
+                        <td>{{ branch.code }}</td>
+                        <td>{{ branch.name }}</td>
+                        <td>{{ branch.phone|default:"—" }}</td>
+                        <td>{{ branch.customers_total }}</td>
+                        <td>{{ branch.accounts_total }}</td>
+                        <td>{{ branch.employees_total }}</td>
+
+                        <td>
+
+                            {% if branch.is_active %}
+
+                                <span class="transaction-status transaction-status-completed">
+                                    Active
+                                </span>
+
+                            {% else %}
+
+                                <span class="transaction-status transaction-status-failed">
+                                    Inactive
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            <a
+                                href="{% url 'branch_update' branch.id %}"
+                                class="transaction-view"
+                            >
+                                Edit
+                            </a>
+
+                            <span>|</span>
+
+                            <a
+                                href="{% url 'branch_delete' branch.id %}"
+                                class="transaction-view"
+                            >
+                                Delete
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <div class="no-transactions">
+
+            <h2>No Branches</h2>
+
+            <p>
+                Add your first branch to start organizing
+                customers, accounts, and staff by location.
+            </p>
+
+            <a href="{% url 'branch_create' %}">
+                + Add Branch
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

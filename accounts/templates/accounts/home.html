@@ -1,0 +1,658 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Dashboard
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard">
+
+    <!-- =====================================================
+         DASHBOARD HEADER
+    ====================================================== -->
+
+    <div class="dashboard-header">
+
+        <div>
+            <p class="dashboard-eyebrow">
+                BANKSYS DASHBOARD
+            </p>
+
+            <h1>
+                Welcome back, {{ user.username }}
+            </h1>
+
+            <p class="dashboard-subtitle">
+                Here's what's happening with your banking system.
+            </p>
+        </div>
+
+        <div class="dashboard-actions">
+
+            <a
+                href="{% url 'transaction_create' %}"
+                class="dashboard-primary-button"
+            >
+                + New Transaction
+            </a>
+
+            <a
+                href="{% url 'transaction_transfer' %}"
+                class="dashboard-secondary-button"
+            >
+                Transfer Money
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MAIN STATISTICS
+    ====================================================== -->
+
+    <section class="dashboard-stat-grid">
+
+        <!-- Customers -->
+
+        <div class="dashboard-stat-card">
+
+            <div class="dashboard-stat-top">
+
+                <span class="dashboard-stat-label">
+                    Customers
+                </span>
+
+                <span class="dashboard-stat-icon">
+                    👥
+                </span>
+
+            </div>
+
+            <div class="dashboard-stat-value">
+                {{ customers_count }}
+            </div>
+
+            <a
+                href="{% url 'customer_list' %}"
+                class="dashboard-stat-link"
+            >
+                View customers →
+            </a>
+
+        </div>
+
+
+        <!-- Accounts -->
+
+        <div class="dashboard-stat-card">
+
+            <div class="dashboard-stat-top">
+
+                <span class="dashboard-stat-label">
+                    Bank Accounts
+                </span>
+
+                <span class="dashboard-stat-icon">
+                    🏦
+                </span>
+
+            </div>
+
+            <div class="dashboard-stat-value">
+                {{ accounts_count }}
+            </div>
+
+            <a
+                href="{% url 'bank_account_list' %}"
+                class="dashboard-stat-link"
+            >
+                View accounts →
+            </a>
+
+        </div>
+
+
+        <!-- Total Balance -->
+
+        <div class="dashboard-stat-card dashboard-stat-card-large">
+
+            <div class="dashboard-stat-top">
+
+                <span class="dashboard-stat-label">
+                    Total Balance
+                </span>
+
+                <span class="dashboard-stat-icon">
+                    ৳
+                </span>
+
+            </div>
+
+            <div class="dashboard-stat-value">
+                ৳{{ total_balance|floatformat:2 }}
+            </div>
+
+            <span class="dashboard-stat-description">
+                Combined balance across all accounts
+            </span>
+
+        </div>
+
+
+        <!-- Transactions -->
+
+        <div class="dashboard-stat-card">
+
+            <div class="dashboard-stat-top">
+
+                <span class="dashboard-stat-label">
+                    Transactions
+                </span>
+
+                <span class="dashboard-stat-icon">
+                    ↕
+                </span>
+
+            </div>
+
+            <div class="dashboard-stat-value">
+                {{ transactions_count }}
+            </div>
+
+            <a
+                href="{% url 'transaction_list' %}"
+                class="dashboard-stat-link"
+            >
+                View transactions →
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MONEY MOVEMENT
+    ====================================================== -->
+
+    <section class="dashboard-section">
+
+        <div class="dashboard-section-header">
+
+            <div>
+
+                <p class="dashboard-section-eyebrow">
+                    FINANCIAL ACTIVITY
+                </p>
+
+                <h2>
+                    Money Movement
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div class="dashboard-money-grid">
+
+            <!-- Deposits -->
+
+            <div class="dashboard-money-card">
+
+                <div class="dashboard-money-icon dashboard-deposit-icon">
+                    ↓
+                </div>
+
+                <div>
+
+                    <p class="dashboard-money-label">
+                        Total Deposits
+                    </p>
+
+                    <h3>
+                        ৳{{ total_deposits|floatformat:2 }}
+                    </h3>
+
+                    <span>
+                        {{ deposits_count }} completed deposits
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- Withdrawals -->
+
+            <div class="dashboard-money-card">
+
+                <div class="dashboard-money-icon dashboard-withdraw-icon">
+                    ↑
+                </div>
+
+                <div>
+
+                    <p class="dashboard-money-label">
+                        Total Withdrawals
+                    </p>
+
+                    <h3>
+                        ৳{{ total_withdrawals|floatformat:2 }}
+                    </h3>
+
+                    <span>
+                        {{ withdrawals_count }} completed withdrawals
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- Transfers -->
+
+            <div class="dashboard-money-card">
+
+                <div class="dashboard-money-icon dashboard-transfer-icon">
+                    ↔
+                </div>
+
+                <div>
+
+                    <p class="dashboard-money-label">
+                        Total Transfers
+                    </p>
+
+                    <h3>
+                        ৳{{ total_transfers|floatformat:2 }}
+                    </h3>
+
+                    <span>
+                        {{ transfers_count }} completed transfers
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         TREND CHART (last 30 days, from DailySnapshot)
+    ====================================================== -->
+
+    {% if has_snapshots %}
+
+        <section class="dashboard-section">
+
+            <div class="dashboard-section-header">
+                <div>
+                    <p class="dashboard-section-eyebrow">
+                        TRENDS
+                    </p>
+                    <h2>
+                        Deposits vs Withdrawals (Last 30 Days)
+                    </h2>
+                </div>
+            </div>
+
+            <div class="dashboard-money-card" style="display:block;">
+                <canvas id="trendChart" height="90"></canvas>
+            </div>
+
+        </section>
+
+        {{ snapshot_labels|json_script:"snapshot-labels" }}
+        {{ snapshot_deposits|json_script:"snapshot-deposits" }}
+        {{ snapshot_withdrawals|json_script:"snapshot-withdrawals" }}
+        {{ snapshot_balance|json_script:"snapshot-balance" }}
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+        <script>
+            (function () {
+                const labels = JSON.parse(document.getElementById('snapshot-labels').textContent);
+                const deposits = JSON.parse(document.getElementById('snapshot-deposits').textContent);
+                const withdrawals = JSON.parse(document.getElementById('snapshot-withdrawals').textContent);
+                const balance = JSON.parse(document.getElementById('snapshot-balance').textContent);
+
+                const ctx = document.getElementById('trendChart');
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Deposits',
+                                data: deposits,
+                                borderColor: '#0ecf9b',
+                                backgroundColor: 'rgba(14, 207, 155, 0.10)',
+                                tension: 0.3,
+                                fill: true,
+                            },
+                            {
+                                label: 'Withdrawals',
+                                data: withdrawals,
+                                borderColor: '#f4776c',
+                                backgroundColor: 'rgba(244, 119, 108, 0.08)',
+                                tension: 0.3,
+                                fill: true,
+                            },
+                            {
+                                label: 'Total Balance',
+                                data: balance,
+                                borderColor: '#8e9b96',
+                                borderDash: [5, 4],
+                                tension: 0.3,
+                                fill: false,
+                                yAxisID: 'y1',
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: {
+                                labels: { color: '#c2c0b6' },
+                            },
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: '#8e9b96' },
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                            },
+                            y: {
+                                ticks: { color: '#8e9b96' },
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                            },
+                            y1: {
+                                position: 'right',
+                                ticks: { color: '#8e9b96' },
+                                grid: { drawOnChartArea: false },
+                            },
+                        },
+                    },
+                });
+            })();
+        </script>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         RECENT ACTIVITY
+    ====================================================== -->
+
+    <section class="dashboard-section">
+
+        <div class="dashboard-section-header">
+
+            <div>
+
+                <p class="dashboard-section-eyebrow">
+                    ACCOUNT ACTIVITY
+                </p>
+
+                <h2>
+                    Recent Transactions
+                </h2>
+
+            </div>
+
+            <a
+                href="{% url 'transaction_list' %}"
+                class="dashboard-view-all"
+            >
+                View all →
+            </a>
+
+        </div>
+
+
+        {% if recent_transactions %}
+
+            <div class="dashboard-transactions">
+
+                {% for transaction in recent_transactions %}
+
+                    <a
+                        href="{% url 'transaction_detail' transaction.id %}"
+                        class="dashboard-transaction"
+                    >
+
+                        <div class="dashboard-transaction-left">
+
+                            <div
+                                class="
+                                    dashboard-transaction-icon
+                                    dashboard-transaction-{{ transaction.transaction_type|lower }}
+                                "
+                            >
+
+                                {% if transaction.transaction_type == "DEPOSIT" %}
+                                    ↓
+                                {% elif transaction.transaction_type == "WITHDRAW" %}
+                                    ↑
+                                {% else %}
+                                    ↔
+                                {% endif %}
+
+                            </div>
+
+
+                            <div>
+
+                                <div class="dashboard-transaction-type">
+                                    {{ transaction.transaction_type }}
+                                </div>
+
+                                <div class="dashboard-transaction-reference">
+                                    {{ transaction.reference }}
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="dashboard-transaction-middle">
+
+                            <span>
+                                {{ transaction.account.account_number }}
+                            </span>
+
+                            <small>
+                                {{ transaction.account.customer.name }}
+                            </small>
+
+                        </div>
+
+
+                        <div class="dashboard-transaction-right">
+
+                            <strong>
+                                ৳{{ transaction.amount|floatformat:2 }}
+                            </strong>
+
+                            <span class="dashboard-transaction-status">
+                                {{ transaction.status }}
+                            </span>
+
+                        </div>
+
+                    </a>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="dashboard-empty">
+
+                <h3>
+                    No transactions yet
+                </h3>
+
+                <p>
+                    Transaction activity will appear here.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+
+    <!-- =====================================================
+         QUICK ACTIONS
+    ====================================================== -->
+
+    <section class="dashboard-section">
+
+        <div class="dashboard-section-header">
+
+            <div>
+
+                <p class="dashboard-section-eyebrow">
+                    QUICK ACTIONS
+                </p>
+
+                <h2>
+                    Manage BANKSYS
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div class="dashboard-action-grid">
+
+            <a
+                href="{% url 'customer_list' %}"
+                class="dashboard-action-card"
+            >
+
+                <span>
+                    👥
+                </span>
+
+                <div>
+
+                    <h3>
+                        Customers
+                    </h3>
+
+                    <p>
+                        Manage customer records
+                    </p>
+
+                </div>
+
+                <strong>
+                    →
+                </strong>
+
+            </a>
+
+
+            <a
+                href="{% url 'bank_account_list' %}"
+                class="dashboard-action-card"
+            >
+
+                <span>
+                    🏦
+                </span>
+
+                <div>
+
+                    <h3>
+                        Bank Accounts
+                    </h3>
+
+                    <p>
+                        Manage accounts and balances
+                    </p>
+
+                </div>
+
+                <strong>
+                    →
+                </strong>
+
+            </a>
+
+
+            <a
+                href="{% url 'transaction_list' %}"
+                class="dashboard-action-card"
+            >
+
+                <span>
+                    ↕
+                </span>
+
+                <div>
+
+                    <h3>
+                        Transactions
+                    </h3>
+
+                    <p>
+                        View transaction history
+                    </p>
+
+                </div>
+
+                <strong>
+                    →
+                </strong>
+
+            </a>
+
+
+            <a
+                href="{% url 'transaction_transfer' %}"
+                class="dashboard-action-card"
+            >
+
+                <span>
+                    ↔
+                </span>
+
+                <div>
+
+                    <h3>
+                        Transfer Money
+                    </h3>
+
+                    <p>
+                        Transfer funds between accounts
+                    </p>
+
+                </div>
+
+                <strong>
+                    →
+                </strong>
+
+            </a>
+
+        </div>
+
+    </section>
+
+</div>
+
+{% endblock %}

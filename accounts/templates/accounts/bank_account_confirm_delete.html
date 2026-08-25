@@ -1,0 +1,84 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Delete Bank Account
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Delete Bank Account</h1>
+
+    <br>
+
+    <div class="card">
+
+        <h2>Are you sure?</h2>
+
+        <p>
+            You are about to delete the following bank account:
+        </p>
+
+        <p>
+            <strong>Account Number:</strong>
+            {{ account.account_number }}
+        </p>
+
+        <p>
+            <strong>Customer:</strong>
+            {{ account.customer.name }}
+        </p>
+
+        <p>
+            <strong>Account Type:</strong>
+            {{ account.get_account_type_display }}
+        </p>
+
+        <p>
+            <strong>Balance:</strong>
+            ৳{{ account.balance|floatformat:2 }}
+        </p>
+
+        <p>
+            <strong>Status:</strong>
+            {{ account.get_status_display }}
+        </p>
+
+        {% if error %}
+
+            <p class="form-error">
+                {{ error }}
+            </p>
+
+            <br>
+
+            <a href="{% url 'bank_account_detail' account.id %}">
+                Back to Account
+            </a>
+
+        {% else %}
+
+            <br>
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                <button type="submit">
+                    Yes, Delete
+                </button>
+
+                <a href="{% url 'bank_account_detail' account.id %}">
+                    Cancel
+                </a>
+
+            </form>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

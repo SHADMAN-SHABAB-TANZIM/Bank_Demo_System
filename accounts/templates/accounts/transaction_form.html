@@ -1,0 +1,62 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+
+<div class="container transaction-form-container">
+
+    <h1>
+        {% if transfer_mode %}
+            Create Transfer
+        {% else %}
+            {{ title }}
+        {% endif %}
+    </h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {{ form.non_field_errors }}
+
+        {% for field in form %}
+
+            <div class="form-field">
+
+                {{ field.label_tag }}
+
+                {{ field }}
+
+                {% if field.errors %}
+                    {{ field.errors }}
+                {% endif %}
+
+            </div>
+
+        {% endfor %}
+
+        <button type="submit">
+            {% if transfer_mode %}
+                Transfer Money
+            {% else %}
+                Create Transaction
+            {% endif %}
+        </button>
+
+        {% if transfer_mode %}
+            <a href="{% url 'transaction_list' %}">
+                Cancel
+            </a>
+        {% else %}
+            <a href="{% url 'transaction_list' %}">
+                Cancel
+            </a>
+        {% endif %}
+
+    </form>
+
+</div>
+
+{% endblock %}

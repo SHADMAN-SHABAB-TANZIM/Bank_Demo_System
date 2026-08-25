@@ -1,0 +1,164 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Standing Orders
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="page-header">
+        <div>
+            <h1>Standing Orders</h1>
+
+            <p class="page-subtitle">
+                Recurring transfers that run automatically on schedule
+            </p>
+        </div>
+
+        <a
+            href="{% url 'standing_order_create' %}"
+            class="primary-link"
+        >
+            New Standing Order
+        </a>
+    </div>
+
+
+    {% if orders %}
+
+        <div class="transaction-table-wrapper">
+
+            <table class="transaction-table">
+
+                <thead>
+
+                    <tr>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Amount</th>
+                        <th>Frequency</th>
+                        <th>Next Run</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for order in orders %}
+
+                    <tr>
+
+                        <td>
+                            {{ order.account.account_number }}
+                            <br>
+                            <small>{{ order.account.customer.name }}</small>
+                        </td>
+
+                        <td>
+                            {{ order.destination_account.account_number }}
+                            <br>
+                            <small>{{ order.destination_account.customer.name }}</small>
+                        </td>
+
+                        <td class="transaction-amount">
+                            ৳{{ order.amount|floatformat:2 }}
+                        </td>
+
+                        <td>
+                            {{ order.get_frequency_display }}
+                        </td>
+
+                        <td>
+                            {{ order.next_run_date|date:"M d, Y" }}
+                        </td>
+
+                        <td>
+
+                            {% if order.is_active %}
+
+                                <span class="transaction-status transaction-status-completed">
+                                    Active
+                                </span>
+
+                            {% else %}
+
+                                <span class="transaction-status transaction-status-failed">
+                                    Paused
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            <a
+                                href="{% url 'standing_order_update' order.id %}"
+                                class="transaction-view"
+                            >
+                                Edit
+                            </a>
+
+                            <span>|</span>
+
+                            <form
+                                method="post"
+                                action="{% url 'standing_order_toggle' order.id %}"
+                                style="display:inline;"
+                            >
+                                {% csrf_token %}
+                                <button type="submit" class="link-button">
+                                    {% if order.is_active %}
+                                        Pause
+                                    {% else %}
+                                        Resume
+                                    {% endif %}
+                                </button>
+                            </form>
+
+                            <span>|</span>
+
+                            <a
+                                href="{% url 'standing_order_delete' order.id %}"
+                                class="transaction-view"
+                            >
+                                Delete
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <div class="no-transactions">
+
+            <h2>No Standing Orders</h2>
+
+            <p>
+                There are currently no recurring transfers set up.
+            </p>
+
+            <a href="{% url 'standing_order_create' %}">
+                Create Standing Order
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

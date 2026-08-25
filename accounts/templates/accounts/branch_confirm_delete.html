@@ -1,0 +1,69 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Delete Branch
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Delete Branch</h1>
+
+    <br>
+
+    <div class="card">
+
+        <h2>Are you sure?</h2>
+
+        <p>
+            You are about to delete the following branch:
+        </p>
+
+        <p>
+            <strong>Code:</strong>
+            {{ branch.code }}
+        </p>
+
+        <p>
+            <strong>Name:</strong>
+            {{ branch.name }}
+        </p>
+
+        {% if error %}
+
+            <p class="form-error">
+                {{ error }}
+            </p>
+
+            <br>
+
+            <a href="{% url 'branch_list' %}">
+                Back to Branches
+            </a>
+
+        {% else %}
+
+            <br>
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                <button type="submit">
+                    Yes, Delete
+                </button>
+
+                <a href="{% url 'branch_list' %}">
+                    Cancel
+                </a>
+
+            </form>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

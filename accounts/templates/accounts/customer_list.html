@@ -1,0 +1,203 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Customer List
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Customers</h1>
+
+    <!-- Search -->
+    <form method="get" class="search-box">
+
+        <input
+            type="text"
+            name="search"
+            placeholder="Search by name or email..."
+            value="{{ search }}"
+        >
+
+        <select name="status">
+            <option value="active" {% if status == "active" %}selected{% endif %}>
+                Active only
+            </option>
+            <option value="inactive" {% if status == "inactive" %}selected{% endif %}>
+                Inactive only
+            </option>
+            <option value="all" {% if status == "all" %}selected{% endif %}>
+                All customers
+            </option>
+        </select>
+
+        <button type="submit">
+            Search
+        </button>
+
+        {% if search %}
+            <a href="{% url 'customer_list' %}">
+                Clear
+            </a>
+        {% endif %}
+
+    </form>
+
+
+    <!-- Add Customer -->
+    <a href="{% url 'customer_create' %}">
+        + Add New Customer
+    </a>
+
+
+    <!-- Customer Table -->
+    {% if customers %}
+
+        <div class="customer-table-wrapper">
+
+            <table class="customer-table">
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Address</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for customer in customers %}
+
+                        <tr>
+
+                            <td>
+                                <div class="table-box">
+                                    {{ customer.id }}
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="table-box">
+                                    {{ customer.name }}
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="table-box">
+                                    {{ customer.email }}
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="table-box">
+                                    {{ customer.phone }}
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="table-box">
+                                    {{ customer.address }}
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="table-box">
+                                    {% if customer.is_active %}
+                                        <span class="transaction-status transaction-status-completed">
+                                            Active
+                                        </span>
+                                    {% else %}
+                                        <span class="transaction-status transaction-status-failed">
+                                            Inactive
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="table-box actions-box">
+
+                                    <a href="{% url 'customer_detail' customer.id %}">
+                                        View
+                                    </a>
+
+                                    <span>|</span>
+
+                                    <a href="{% url 'customer_update' customer.id %}">
+                                        Edit
+                                    </a>
+
+                                    <span>|</span>
+
+                                    <a href="{% url 'customer_delete' customer.id %}">
+                                        Delete
+                                    </a>
+
+                                </div>
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <div class="no-customers">
+            No customers found.
+        </div>
+
+    {% endif %}
+
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+
+        <div class="pagination">
+
+            {% if page_obj.has_previous %}
+                <a href="?page=1{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}">
+                    First
+                </a>
+
+                <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}">
+                    Previous
+                </a>
+            {% endif %}
+
+
+            <span>
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+
+            {% if page_obj.has_next %}
+
+                <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}">
+                    Next
+                </a>
+
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}">
+                    Last
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

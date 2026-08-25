@@ -1,0 +1,52 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+
+    {% if customer %}
+        Edit Customer
+    {% else %}
+        Add Customer
+    {% endif %}
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container">
+
+    <h1>
+        {% if customer %}
+            Edit Customer
+        {% else %}
+            Add Customer
+        {% endif %}
+    </h1>
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit">
+
+            {% if customer %}
+                Update Customer
+            {% else %}
+                Add Customer
+            {% endif %}
+
+        </button>
+
+    </form>
+
+    <br>
+
+    <a href="{% url 'customer_list' %}">
+        Back to Customers
+    </a>
+
+</div>
+
+{% endblock %}

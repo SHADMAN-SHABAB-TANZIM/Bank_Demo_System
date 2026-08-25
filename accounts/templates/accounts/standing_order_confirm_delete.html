@@ -1,0 +1,69 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Delete Standing Order
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Delete Standing Order</h1>
+
+    <br>
+
+    <div class="card">
+
+        <h2>Are you sure?</h2>
+
+        <p>
+            You are about to delete the following standing order.
+            No further recurring transfers will be executed.
+        </p>
+
+        <p>
+            <strong>From:</strong>
+            {{ order.account.account_number }}
+        </p>
+
+        <p>
+            <strong>To:</strong>
+            {{ order.destination_account.account_number }}
+        </p>
+
+        <p>
+            <strong>Amount:</strong>
+            ৳{{ order.amount|floatformat:2 }}
+        </p>
+
+        <p>
+            <strong>Frequency:</strong>
+            {{ order.get_frequency_display }}
+        </p>
+
+        <p>
+            <strong>Next Run:</strong>
+            {{ order.next_run_date|date:"M d, Y" }}
+        </p>
+
+        <br>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <button type="submit">
+                Yes, Delete
+            </button>
+
+            <a href="{% url 'standing_order_list' %}">
+                Cancel
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

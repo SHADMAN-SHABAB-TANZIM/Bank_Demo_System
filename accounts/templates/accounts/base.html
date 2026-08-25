@@ -1,0 +1,152 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}
+        Management System
+        {% endblock %}
+    </title>
+
+    <link rel="stylesheet"
+          href="{% static 'accounts/css/style.css' %}">
+
+</head>
+
+<body>
+
+    <div class="background-glow glow-one"></div>
+    <div class="background-glow glow-two"></div>
+
+
+    <nav class="navbar">
+
+        <div class="nav-logo">
+            BANK<span>SYS</span>
+        </div>
+
+<div class="nav-links">
+
+    <a href="{% url 'home' %}">
+        Home
+    </a>
+
+    <a href="{% url 'customer_list' %}">
+        Customers
+    </a>
+
+<a href="{% url 'bank_account_list' %}">
+    Accounts
+</a>
+
+<a href="{% url 'transaction_list' %}">
+    Transactions
+</a>
+
+{% if perms.accounts.view_standingorder %}
+<a href="{% url 'standing_order_list' %}">
+    Standing Orders
+</a>
+{% endif %}
+
+{% if perms.accounts.view_loan %}
+<a href="{% url 'loan_list' %}">
+    Loans
+</a>
+{% endif %}
+
+{% if perms.accounts.view_auditlog %}
+<a href="{% url 'audit_log_list' %}">
+    Audit Log
+</a>
+{% endif %}
+
+{% if perms.accounts.view_branch %}
+<a href="{% url 'branch_list' %}">
+    Branches
+</a>
+{% endif %}
+
+{% if perms.accounts.view_employeeprofile %}
+<a href="{% url 'employee_list' %}">
+    Employees
+</a>
+{% endif %}
+
+</div>
+
+
+        {% if user.is_authenticated %}
+
+        <div class="nav-user">
+
+            <span>
+                {{ user.username }}
+            </span>
+
+            <a href="{% url 'password_change' %}" class="nav-password-link">
+                Password
+            </a>
+
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+
+                <button type="submit"
+                        class="nav-logout">
+                    Logout
+                </button>
+
+            </form>
+
+        </div>
+
+        {% endif %}
+
+    </nav>
+
+
+    <main class="main-content">
+
+        {% if messages %}
+
+            <div class="flash-messages">
+
+                {% for message in messages %}
+
+                    <div class="flash-message flash-{{ message.tags }}">
+
+                        {{ message }}
+
+                        <button
+                            type="button"
+                            class="flash-close"
+                            onclick="this.parentElement.remove()"
+                        >
+                            &times;
+                        </button>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+
+    </main>
+
+
+</body>
+
+</html>

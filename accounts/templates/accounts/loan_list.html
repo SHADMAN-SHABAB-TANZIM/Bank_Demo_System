@@ -1,0 +1,124 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Loans
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="page-header">
+        <div>
+            <h1>Loans</h1>
+
+            <p class="page-subtitle">
+                Installment loans against customer accounts
+            </p>
+        </div>
+
+        <a
+            href="{% url 'loan_create' %}"
+            class="primary-link"
+        >
+            New Loan
+        </a>
+    </div>
+
+    <p>
+        <a href="{% url 'emi_calculator' %}">
+            Just want a quick EMI estimate? Use the calculator →
+        </a>
+    </p>
+
+
+    {% if loans %}
+
+        <div class="transaction-table-wrapper">
+
+            <table class="transaction-table">
+
+                <thead>
+                    <tr>
+                        <th>Account</th>
+                        <th>Customer</th>
+                        <th>Principal</th>
+                        <th>Rate</th>
+                        <th>Term</th>
+                        <th>Start Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for loan in loans %}
+
+                    <tr>
+
+                        <td>{{ loan.account.account_number }}</td>
+
+                        <td>{{ loan.account.customer.name }}</td>
+
+                        <td class="transaction-amount">
+                            ৳{{ loan.principal|floatformat:2 }}
+                        </td>
+
+                        <td>{{ loan.annual_rate }}%</td>
+
+                        <td>{{ loan.months }} mo</td>
+
+                        <td>{{ loan.start_date|date:"M d, Y" }}</td>
+
+                        <td>
+
+                            <span
+                                class="
+                                    transaction-status
+                                    {% if loan.status == 'ACTIVE' %}
+                                        transaction-status-completed
+                                    {% elif loan.status == 'DEFAULTED' %}
+                                        transaction-status-failed
+                                    {% else %}
+                                        transaction-status-pending
+                                    {% endif %}
+                                "
+                            >
+                                {{ loan.get_status_display }}
+                            </span>
+
+                        </td>
+
+                        <td>
+                            <a
+                                href="{% url 'loan_detail' loan.id %}"
+                                class="transaction-view"
+                            >
+                                View
+                            </a>
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <div class="no-transactions">
+            <h2>No Loans Yet</h2>
+            <p>Loans issued against customer accounts will appear here.</p>
+            <a href="{% url 'loan_create' %}">Create Loan</a>
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
