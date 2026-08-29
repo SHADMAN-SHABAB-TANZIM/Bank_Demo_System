@@ -1,0 +1,50 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Portal Access Created
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>
+        {% if is_reset %}
+            Password Reset
+        {% else %}
+            Portal Access Created
+        {% endif %}
+    </h1>
+
+    <br>
+
+    <div class="card">
+
+        <h2>{{ customer.name }}</h2>
+
+        <p class="form-error">
+            This password is shown only once - copy it now.
+            Share it with the customer through a secure channel.
+        </p>
+
+        <p>
+            <strong>Username:</strong>
+            {{ username }}
+        </p>
+
+        <p>
+            <strong>Temporary Password:</strong>
+            <code>{{ password }}</code>
+        </p>
+
+        <br>
+
+        <a href="{% url 'customer_detail' customer.id %}">
+            Back to {{ customer.name }}
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

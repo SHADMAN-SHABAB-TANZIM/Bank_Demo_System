@@ -1,0 +1,212 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+My Accounts
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard">
+
+    <div class="dashboard-header">
+
+        <div>
+            <p class="dashboard-eyebrow">
+                BANKSYS ONLINE
+            </p>
+
+            <h1>
+                Welcome back, {{ customer.name }}
+            </h1>
+
+            <p class="dashboard-subtitle">
+                Here's an overview of your accounts.
+            </p>
+        </div>
+
+    </div>
+
+
+    <section class="dashboard-stat-grid">
+
+        <div class="dashboard-stat-card dashboard-stat-card-large">
+
+            <div class="dashboard-stat-top">
+                <span class="dashboard-stat-label">Total Balance</span>
+                <span class="dashboard-stat-icon">৳</span>
+            </div>
+
+            <div class="dashboard-stat-value">
+                ৳{{ total_balance|floatformat:2 }}
+            </div>
+
+            <span class="dashboard-stat-description">
+                Combined balance across all your accounts
+            </span>
+
+        </div>
+
+        <div class="dashboard-stat-card">
+
+            <div class="dashboard-stat-top">
+                <span class="dashboard-stat-label">Accounts</span>
+                <span class="dashboard-stat-icon">🏦</span>
+            </div>
+
+            <div class="dashboard-stat-value">
+                {{ accounts|length }}
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section class="dashboard-section">
+
+        <div class="dashboard-section-header">
+            <div>
+                <p class="dashboard-section-eyebrow">YOUR ACCOUNTS</p>
+                <h2>Accounts</h2>
+            </div>
+        </div>
+
+        {% if accounts %}
+
+            <div class="accounts-list">
+
+                {% for account in accounts %}
+
+                    <div class="bank-account-card">
+
+                        <div class="bank-account-card-header">
+
+                            <div>
+                                <span class="bank-account-label">ACCOUNT NUMBER</span>
+                                <h2 class="bank-account-number">{{ account.account_number }}</h2>
+                            </div>
+
+                            <span class="bank-account-status bank-account-status-{{ account.status|lower }}">
+                                {{ account.get_status_display }}
+                            </span>
+
+                        </div>
+
+                        <div class="bank-account-divider"></div>
+
+                        <div class="bank-account-info-grid">
+
+                            <div class="bank-account-info">
+                                <span class="bank-account-info-label">Type</span>
+                                <span class="bank-account-info-value">{{ account.get_account_type_display }}</span>
+                            </div>
+
+                            <div class="bank-account-info">
+                                <span class="bank-account-info-label">Balance</span>
+                                <span class="bank-account-balance">৳{{ account.balance|floatformat:2 }}</span>
+                            </div>
+
+                        </div>
+
+                        <div class="bank-account-card-footer">
+
+                            <a
+                                href="{% url 'portal_account_detail' account.id %}"
+                                class="bank-account-action bank-account-view"
+                            >
+                                View Statement <span>→</span>
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="dashboard-empty">
+                <h3>No Accounts Yet</h3>
+                <p>Visit your branch to open an account.</p>
+            </div>
+
+        {% endif %}
+
+    </section>
+
+
+    <section class="dashboard-section">
+
+        <div class="dashboard-section-header">
+            <div>
+                <p class="dashboard-section-eyebrow">RECENT ACTIVITY</p>
+                <h2>Recent Transactions</h2>
+            </div>
+
+            <a href="{% url 'portal_transaction_list' %}" class="dashboard-view-all">
+                View all →
+            </a>
+        </div>
+
+        {% if recent_transactions %}
+
+            <div class="dashboard-transactions">
+
+                {% for transaction in recent_transactions %}
+
+                    <div class="dashboard-transaction">
+
+                        <div class="dashboard-transaction-left">
+
+                            <div class="dashboard-transaction-icon dashboard-transaction-{{ transaction.transaction_type|lower }}">
+                                {% if transaction.transaction_type == "DEPOSIT" or transaction.transaction_type == "INTEREST" or transaction.transaction_type == "LOAN_DISBURSEMENT" %}
+                                    ↓
+                                {% elif transaction.transaction_type == "WITHDRAW" %}
+                                    ↑
+                                {% else %}
+                                    ↔
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <div class="dashboard-transaction-type">
+                                    {{ transaction.get_transaction_type_display }}
+                                </div>
+                                <div class="dashboard-transaction-reference">
+                                    {{ transaction.reference }}
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="dashboard-transaction-middle">
+                            <span>{{ transaction.account.account_number }}</span>
+                            <small>{{ transaction.created_at|date:"M d, Y" }}</small>
+                        </div>
+
+                        <div class="dashboard-transaction-right">
+                            <strong>৳{{ transaction.amount|floatformat:2 }}</strong>
+                            <span class="dashboard-transaction-status">{{ transaction.get_status_display }}</span>
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="dashboard-empty">
+                <h3>No transactions yet</h3>
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+{% endblock %}

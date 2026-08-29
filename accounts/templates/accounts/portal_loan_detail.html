@@ -1,0 +1,110 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Loan Details
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="page-header">
+        <div>
+            <h1>Loan on {{ loan.account.account_number }}</h1>
+            <p class="page-subtitle">
+                ৳{{ loan.principal|floatformat:2 }} at {{ loan.annual_rate }}%
+                over {{ loan.months }} months
+            </p>
+        </div>
+
+        <a href="{% url 'portal_loan_list' %}" class="primary-link">
+            ← Back to My Loans
+        </a>
+    </div>
+
+    <div class="card">
+
+        <p><strong>Status:</strong> {{ loan.get_status_display }}</p>
+        <p><strong>Start Date:</strong> {{ loan.start_date }}</p>
+        <p><strong>Monthly EMI:</strong> ৳{{ emi|floatformat:2 }}</p>
+
+    </div>
+
+    <br>
+
+    <h2>Repayment Schedule</h2>
+
+    {% if installments %}
+
+        <div class="transaction-table-wrapper">
+
+            <table class="transaction-table">
+
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Due Date</th>
+                        <th>Principal</th>
+                        <th>Interest</th>
+                        <th>Penalty</th>
+                        <th>Total Due</th>
+                        <th>Paid</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for installment in installments %}
+
+                    <tr>
+
+                        <td>{{ installment.installment_no }}</td>
+                        <td>{{ installment.due_date }}</td>
+                        <td class="transaction-amount">৳{{ installment.principal_due|floatformat:2 }}</td>
+                        <td class="transaction-amount">৳{{ installment.interest_due|floatformat:2 }}</td>
+                        <td class="transaction-amount">
+                            {% if installment.penalty_amount %}
+                                ৳{{ installment.penalty_amount|floatformat:2 }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td class="transaction-amount">
+                            ৳{{ installment.total_due|floatformat:2 }}
+                        </td>
+                        <td class="transaction-amount">
+                            {% if installment.amount_paid %}
+                                ৳{{ installment.amount_paid|floatformat:2 }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <span class="transaction-status transaction-status-{{ installment.status|lower }}">
+                                {{ installment.get_status_display }}
+                            </span>
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <div class="no-transactions">
+            <h2>No Installments</h2>
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

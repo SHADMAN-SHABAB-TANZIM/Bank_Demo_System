@@ -1842,6 +1842,72 @@ button:hover {
         rgba(255, 107, 122, 0.20);
 }
 
+.transaction-status-paid {
+    color: #0ecf9b;
+
+    background:
+        rgba(14, 207, 155, 0.08);
+
+    border:
+        1px solid
+        rgba(14, 207, 155, 0.20);
+}
+
+.transaction-status-overdue {
+    color: #ff9da7;
+
+    background:
+        rgba(255, 107, 122, 0.08);
+
+    border:
+        1px solid
+        rgba(255, 107, 122, 0.20);
+}
+
+.transaction-status-reversed {
+    color: #aebbb5;
+
+    background:
+        rgba(255, 255, 255, 0.04);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.12);
+}
+
+.transaction-status-pending_review {
+    color: #f4d878;
+
+    background:
+        rgba(244, 216, 120, 0.08);
+
+    border:
+        1px solid
+        rgba(244, 216, 120, 0.20);
+}
+
+.transaction-status-confirmed_fraud {
+    color: #ff9da7;
+
+    background:
+        rgba(255, 107, 122, 0.10);
+
+    border:
+        1px solid
+        rgba(255, 107, 122, 0.30);
+}
+
+.transaction-status-false_positive {
+    color: #0ecf9b;
+
+    background:
+        rgba(14, 207, 155, 0.08);
+
+    border:
+        1px solid
+        rgba(14, 207, 155, 0.20);
+}
+
 
 /* =========================================================
    VIEW BUTTON

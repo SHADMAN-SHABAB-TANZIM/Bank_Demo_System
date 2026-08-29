@@ -1,0 +1,134 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Trial Balance
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="page-header">
+        <div>
+            <h1>Trial Balance</h1>
+
+            <p class="page-subtitle">
+                Chart of accounts with running debit/credit totals -
+                the two totals below must always match.
+            </p>
+        </div>
+    </div>
+
+
+    {% if rows %}
+
+        <div class="transaction-table-wrapper">
+
+            <table class="transaction-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Code</th>
+                        <th>Account</th>
+                        <th>Type</th>
+                        <th>Total Debit</th>
+                        <th>Total Credit</th>
+                        <th>Balance</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for row in rows %}
+
+                    <tr>
+
+                        <td>
+                            <a
+                                href="{% url 'ledger_account_detail' row.account.id %}"
+                                class="transaction-view"
+                            >
+                                {{ row.account.code }}
+                            </a>
+                        </td>
+
+                        <td>{{ row.account.name }}</td>
+
+                        <td>
+                            <span class="transaction-type transaction-type-transfer">
+                                {{ row.account.get_account_type_display }}
+                            </span>
+                        </td>
+
+                        <td class="transaction-amount">
+                            ৳{{ row.debit_sum|floatformat:2 }}
+                        </td>
+
+                        <td class="transaction-amount">
+                            ৳{{ row.credit_sum|floatformat:2 }}
+                        </td>
+
+                        <td class="transaction-amount">
+                            ৳{{ row.balance|floatformat:2 }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+                <tfoot>
+
+                    <tr>
+                        <td colspan="3"><strong>Total</strong></td>
+                        <td class="transaction-amount"><strong>৳{{ total_debit|floatformat:2 }}</strong></td>
+                        <td class="transaction-amount"><strong>৳{{ total_credit|floatformat:2 }}</strong></td>
+                        <td></td>
+                    </tr>
+
+                </tfoot>
+
+            </table>
+
+        </div>
+
+
+        <br>
+
+        {% if is_balanced %}
+
+            <div class="flash-message flash-success" style="display:inline-flex;">
+                ✓ Books balanced - total debits equal total credits.
+            </div>
+
+        {% else %}
+
+            <div class="flash-message flash-error" style="display:inline-flex;">
+                ⚠ Books DO NOT balance - total debits and credits differ.
+                This should never happen; check for entries posted
+                outside accounts.ledger.post_journal_entry.
+            </div>
+
+        {% endif %}
+
+    {% else %}
+
+        <div class="no-transactions">
+
+            <h2>No Chart of Accounts Yet</h2>
+
+            <p>
+                Run <code>python manage.py seed_chart_of_accounts</code>
+                to create the baseline accounts.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

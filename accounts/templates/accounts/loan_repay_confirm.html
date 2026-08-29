@@ -1,0 +1,89 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Record Loan Payment
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Record Loan Payment</h1>
+
+    <br>
+
+    <div class="card">
+
+        <h2>Pay Installment #{{ installment.installment_no }}</h2>
+
+        <p>
+            <strong>Loan:</strong>
+            #{{ loan.id }} - {{ loan.account.account_number }}
+        </p>
+
+        <p>
+            <strong>Due Date:</strong>
+            {{ installment.due_date|date:"M d, Y" }}
+        </p>
+
+        <p>
+            <strong>Principal:</strong>
+            ৳{{ installment.principal_due|floatformat:2 }}
+        </p>
+
+        <p>
+            <strong>Interest:</strong>
+            ৳{{ installment.interest_due|floatformat:2 }}
+        </p>
+
+        {% if installment.penalty_amount %}
+
+            <p>
+                <strong>Late Penalty:</strong>
+                ৳{{ installment.penalty_amount|floatformat:2 }}
+            </p>
+
+        {% endif %}
+
+        <p>
+            <strong>Total Due:</strong>
+            ৳{{ total_due|floatformat:2 }}
+        </p>
+
+        {% if error %}
+
+            <p class="form-error">
+                {{ error }}
+            </p>
+
+            <br>
+
+            <a href="{% url 'loan_detail' loan.id %}">
+                Back to Loan
+            </a>
+
+        {% else %}
+
+            <br>
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                <button type="submit">
+                    Confirm Payment
+                </button>
+
+                <a href="{% url 'loan_detail' loan.id %}">
+                    Cancel
+                </a>
+
+            </form>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

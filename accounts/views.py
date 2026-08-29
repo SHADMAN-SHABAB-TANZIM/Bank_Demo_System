@@ -18,6 +18,12 @@ from django.shortcuts import (
     redirect,
     render,
 )
+from django.utils import timezone
+
+from . import ledger
+from . import fraud
+from . import notifications
+from .reversal import reverse_transaction, ReversalError
 
 from .utils import (
     generate_transaction_reference,
@@ -25,6 +31,7 @@ from .utils import (
     calculate_emi,
     amortization_schedule,
     filter_transactions,
+    calculate_fee,
 )
 
 from .branch_scope import (
@@ -41,6 +48,7 @@ from .forms import (
     LoanForm,
     BranchForm,
     EmployeeProfileForm,
+    FeeRuleForm,
 )
 
 from .models import (
@@ -50,9 +58,14 @@ from .models import (
     StandingOrder,
     AuditLog,
     Loan,
+    LoanInstallment,
     DailySnapshot,
     Branch,
     EmployeeProfile,
+    ChartOfAccount,
+    FeeRule,
+    CustomerPortalAccount,
+    FraudAlert,
 )
 
 
@@ -62,6 +75,9 @@ from .models import (
 
 @login_required
 def home(request):
+
+    if hasattr(request.user, "customer_profile"):
+        return redirect("portal_dashboard")
 
     # --------------------------------------------------------
     # Dashboard statistics (branch-scoped: a Branch Manager /
@@ -1268,6 +1284,12 @@ def transaction_create(request):
 
                         log_action(request, "CREATE", deposit_txn)
 
+                        ledger.post_deposit(deposit_txn, user=request.user)
+
+                        notifications.notify_transaction(deposit_txn)
+
+                        fraud.evaluate_transaction(deposit_txn)
+
                         messages.success(
                             request,
                             f"Deposited ৳{amount} to "
@@ -1280,18 +1302,24 @@ def transaction_create(request):
 
                     elif transaction_type == "WITHDRAW":
 
-                        if account.balance < amount:
+                        fee = calculate_fee("WITHDRAW", amount)
+
+                        if account.balance < (amount + fee):
 
                             form.add_error(
                                 "amount",
-                                "Insufficient balance.",
+                                "Insufficient balance."
+                                + (
+                                    f" (includes ৳{fee} fee)"
+                                    if fee else ""
+                                ),
                             )
 
                             raise ValueError(
                                 "Insufficient balance.",
                             )
 
-                        account.balance -= amount
+                        account.balance -= (amount + fee)
 
                         account.save(
                             update_fields=[
@@ -1304,6 +1332,7 @@ def transaction_create(request):
                             destination_account=None,
                             transaction_type="WITHDRAW",
                             amount=amount,
+                            fee_amount=fee,
                             balance_after=account.balance,
                             reference=(
                                 generate_transaction_reference(
@@ -1316,10 +1345,20 @@ def transaction_create(request):
 
                         log_action(request, "CREATE", withdraw_txn)
 
+                        ledger.post_withdraw(withdraw_txn, user=request.user)
+
+                        notifications.notify_transaction(withdraw_txn)
+
+                        fraud.evaluate_transaction(withdraw_txn)
+
+                        if fee:
+                            ledger.post_fee(withdraw_txn, fee, user=request.user)
+
                         messages.success(
                             request,
                             f"Withdrew ৳{amount} from "
-                            f"{account.account_number}.",
+                            f"{account.account_number}."
+                            + (f" Fee: ৳{fee}." if fee else ""),
                         )
 
                     # ==================================================
@@ -1389,9 +1428,25 @@ def transaction_create(request):
                                 "Insufficient balance.",
                             )
 
+                        fee = calculate_fee("TRANSFER", amount)
+
+                        if account.balance < (amount + fee):
+
+                            form.add_error(
+                                "amount",
+                                (
+                                    "Insufficient balance for "
+                                    f"transfer plus ৳{fee} fee."
+                                ),
+                            )
+
+                            raise ValueError(
+                                "Insufficient balance for fee.",
+                            )
+
                         # Transfer money
 
-                        account.balance -= amount
+                        account.balance -= (amount + fee)
 
                         destination_account.balance += amount
 
@@ -1414,6 +1469,7 @@ def transaction_create(request):
                             ),
                             transaction_type="TRANSFER",
                             amount=amount,
+                            fee_amount=fee,
                             balance_after=account.balance,
                             reference=(
                                 generate_transaction_reference(
@@ -1426,11 +1482,21 @@ def transaction_create(request):
 
                         log_action(request, "CREATE", transfer_txn)
 
+                        ledger.post_transfer(transfer_txn, user=request.user)
+
+                        if fee:
+                            ledger.post_fee(transfer_txn, fee, user=request.user)
+
+                        notifications.notify_transaction(transfer_txn)
+
+                        fraud.evaluate_transaction(transfer_txn)
+
                         messages.success(
                             request,
                             f"Transferred ৳{amount} from "
                             f"{account.account_number} to "
-                            f"{destination_account.account_number}.",
+                            f"{destination_account.account_number}."
+                            + (f" Fee: ৳{fee}." if fee else ""),
                         )
 
                 return redirect(
@@ -1530,15 +1596,24 @@ def transaction_update(
 
 
 # ============================================================
-# DELETE TRANSACTION
+# REVERSE TRANSACTION (non-destructive)
 # ============================================================
+#
+# Per the roadmap: never hard-delete a financial transaction.
+# This creates a compensating REVERSAL transaction and marks
+# the original as REVERSED - both rows, and both journal
+# entries, remain in the database permanently. Gated on
+# change_transaction (not delete_transaction) since nothing
+# is actually deleted - see accounts.reversal for the generic
+# logic that makes this work uniformly across every
+# transaction type.
 
 @login_required
 @permission_required(
-    "accounts.delete_transaction",
+    "accounts.change_transaction",
     raise_exception=True,
 )
-def transaction_delete(
+def transaction_reverse(
     request,
     transaction_id,
 ):
@@ -1550,142 +1625,41 @@ def transaction_delete(
 
     if request.method == "POST":
 
-        # ----------------------------------------------------
-        # Only latest transaction can be deleted.
-        # ----------------------------------------------------
+        try:
 
-        latest_transaction = (
-            Transaction.objects
-            .filter(
-                account=transaction.account,
+            reversal_txn = reverse_transaction(
+                transaction, user=request.user, request=request,
             )
-            .order_by(
-                "-created_at",
-                "-id",
-            )
-            .first()
-        )
 
-        if latest_transaction != transaction:
+        except ReversalError as exc:
 
             return render(
                 request,
-                "accounts/transaction_confirm_delete.html",
+                "accounts/transaction_confirm_reverse.html",
                 {
                     "transaction": transaction,
-                    "error": (
-                        "Only the most recent transaction "
-                        "can be deleted."
-                    ),
+                    "error": str(exc),
                 },
             )
 
-        with db_transaction.atomic():
-
-            transaction_id_str = str(transaction.id)
-
-            account = (
-                BankAccount.objects
-                .select_for_update()
-                .get(
-                    id=transaction.account.id,
-                )
-            )
-
-            # ==================================================
-            # REVERSE DEPOSIT
-            # ==================================================
-
-            if transaction.transaction_type == "DEPOSIT":
-
-                account.balance -= transaction.amount
-
-                account.save(
-                    update_fields=[
-                        "balance",
-                    ],
-                )
-
-            # ==================================================
-            # REVERSE WITHDRAW
-            # ==================================================
-
-            elif transaction.transaction_type == "WITHDRAW":
-
-                account.balance += transaction.amount
-
-                account.save(
-                    update_fields=[
-                        "balance",
-                    ],
-                )
-
-            # ==================================================
-            # REVERSE TRANSFER
-            # ==================================================
-
-            elif transaction.transaction_type == "TRANSFER":
-
-                destination = (
-                    transaction.destination_account
-                )
-
-                if destination is not None:
-
-                    destination = (
-                        BankAccount.objects
-                        .select_for_update()
-                        .get(
-                            id=destination.id,
-                        )
-                    )
-
-                    destination.balance -= (
-                        transaction.amount
-                    )
-
-                    destination.save(
-                        update_fields=[
-                            "balance",
-                        ],
-                    )
-
-                account.balance += (
-                    transaction.amount
-                )
-
-                account.save(
-                    update_fields=[
-                        "balance",
-                    ],
-                )
-
-            transaction.delete()
-
-            log_action(
-                request,
-                "DELETE",
-                transaction,
-                object_id=transaction_id_str,
-            )
-
-            messages.success(
-                request,
-                "Transaction deleted and balance reversed.",
-            )
+        messages.success(
+            request,
+            f"Transaction reversed via {reversal_txn.reference}. "
+            "Original record kept for audit purposes.",
+        )
 
         return redirect(
-            "transaction_list",
+            "transaction_detail",
+            transaction_id=transaction.id,
         )
 
     return render(
         request,
-        "accounts/transaction_confirm_delete.html",
+        "accounts/transaction_confirm_reverse.html",
         {
             "transaction": transaction,
         },
     )
-
 
 # ============================================================
 # TRANSFER PAGE
@@ -1843,11 +1817,24 @@ def transaction_transfer(request):
                             "Insufficient balance.",
                         )
 
+                    fee = calculate_fee("TRANSFER", amount)
+
+                    if account.balance < (amount + fee):
+
+                        form.add_error(
+                            "amount",
+                            f"Insufficient balance for transfer plus ৳{fee} fee.",
+                        )
+
+                        raise ValueError(
+                            "Insufficient balance for fee.",
+                        )
+
                     # ------------------------------------------------
                     # Transfer
                     # ------------------------------------------------
 
-                    account.balance -= amount
+                    account.balance -= (amount + fee)
 
                     destination_account.balance += amount
 
@@ -1874,6 +1861,7 @@ def transaction_transfer(request):
                         ),
                         transaction_type="TRANSFER",
                         amount=amount,
+                        fee_amount=fee,
                         balance_after=account.balance,
                         reference=(
                             generate_transaction_reference(
@@ -1886,11 +1874,21 @@ def transaction_transfer(request):
 
                     log_action(request, "CREATE", transfer_txn)
 
+                    ledger.post_transfer(transfer_txn, user=request.user)
+
+                    if fee:
+                        ledger.post_fee(transfer_txn, fee, user=request.user)
+
+                    notifications.notify_transaction(transfer_txn)
+
+                    fraud.evaluate_transaction(transfer_txn)
+
                     messages.success(
                         request,
                         f"Transferred ৳{amount} from "
                         f"{account.account_number} to "
-                        f"{destination_account.account_number}.",
+                        f"{destination_account.account_number}."
+                        + (f" Fee: ৳{fee}." if fee else ""),
                     )
 
                 return redirect(
@@ -2248,20 +2246,79 @@ def loan_create(request):
 
         if form.is_valid():
 
-            loan = form.save()
+            with db_transaction.atomic():
 
-            log_action(request, "CREATE", loan)
+                loan = form.save(commit=False)
 
-            messages.success(
-                request,
-                f"Loan of ৳{loan.principal} created for "
-                f"{loan.account.account_number}.",
-            )
+                account = (
+                    BankAccount.objects
+                    .select_for_update()
+                    .get(id=loan.account_id)
+                )
 
-            return redirect(
-                "loan_detail",
-                loan_id=loan.id,
-            )
+                if account.status != "ACTIVE":
+
+                    form.add_error(
+                        None,
+                        f"Account {account.account_number} is not "
+                        "active - cannot disburse a loan to it.",
+                    )
+
+                else:
+
+                    loan.save()
+
+                    account.balance += loan.principal
+                    account.save(update_fields=["balance"])
+
+                    disbursement_txn = Transaction.objects.create(
+                        account=account,
+                        destination_account=None,
+                        transaction_type="LOAN_DISBURSEMENT",
+                        amount=loan.principal,
+                        balance_after=account.balance,
+                        reference=generate_transaction_reference(account),
+                        description=f"Loan #{loan.id} disbursement",
+                        status="COMPLETED",
+                    )
+
+                    log_action(request, "CREATE", loan)
+                    log_action(request, "CREATE", disbursement_txn)
+
+                    ledger.post_loan_disbursement(
+                        loan, transaction=disbursement_txn, user=request.user,
+                    )
+
+                    notifications.notify_transaction(disbursement_txn)
+
+                    schedule = amortization_schedule(
+                        loan.principal, loan.annual_rate,
+                        loan.months, loan.start_date,
+                    )
+
+                    LoanInstallment.objects.bulk_create([
+                        LoanInstallment(
+                            loan=loan,
+                            installment_no=row["month_no"],
+                            due_date=row["date"],
+                            principal_due=row["principal"],
+                            interest_due=row["interest"],
+                            total_due=row["emi"],
+                        )
+                        for row in schedule
+                    ])
+
+                    messages.success(
+                        request,
+                        f"Loan of ৳{loan.principal} disbursed to "
+                        f"{account.account_number}. New balance: "
+                        f"৳{account.balance}.",
+                    )
+
+                    return redirect(
+                        "loan_detail",
+                        loan_id=loan.id,
+                    )
 
     else:
 
@@ -2308,6 +2365,23 @@ def loan_detail(
     total_payable = emi * loan.months
     total_interest = total_payable - loan.principal
 
+    installments = loan.installments.all()
+
+    next_installment = installments.filter(
+        status__in=["PENDING", "OVERDUE"],
+    ).order_by("installment_no").first()
+
+    next_installment_total = None
+
+    if next_installment is not None:
+        next_installment_total = (
+            next_installment.total_due + next_installment.penalty_amount
+        )
+
+    total_paid = sum(
+        (i.amount_paid for i in installments), Decimal("0.00"),
+    )
+
     return render(
         request,
         "accounts/loan_detail.html",
@@ -2315,8 +2389,141 @@ def loan_detail(
             "loan": loan,
             "emi": emi,
             "schedule": schedule,
+            "installments": installments,
+            "next_installment": next_installment,
+            "next_installment_total": next_installment_total,
+            "total_paid": total_paid,
             "total_payable": total_payable,
             "total_interest": total_interest,
+        },
+    )
+
+
+@login_required
+@permission_required(
+    "accounts.change_loan",
+    raise_exception=True,
+)
+def loan_repay(
+    request,
+    loan_id,
+):
+
+    loan = get_object_or_404(
+        Loan.objects.select_related("account"),
+        id=loan_id,
+    )
+
+    next_installment = (
+        loan.installments
+        .filter(status__in=["PENDING", "OVERDUE"])
+        .order_by("installment_no")
+        .first()
+    )
+
+    if next_installment is None:
+
+        messages.warning(
+            request,
+            "This loan has no outstanding installments.",
+        )
+
+        return redirect("loan_detail", loan_id=loan.id)
+
+    total_due = next_installment.total_due + next_installment.penalty_amount
+
+    if request.method == "POST":
+
+        with db_transaction.atomic():
+
+            account = (
+                BankAccount.objects
+                .select_for_update()
+                .get(id=loan.account_id)
+            )
+
+            if account.balance < total_due:
+
+                return render(
+                    request,
+                    "accounts/loan_repay_confirm.html",
+                    {
+                        "loan": loan,
+                        "installment": next_installment,
+                        "total_due": total_due,
+                        "error": (
+                            f"Insufficient balance on "
+                            f"{account.account_number} to pay "
+                            f"this installment."
+                        ),
+                    },
+                )
+
+            account.balance -= total_due
+            account.save(update_fields=["balance"])
+
+            repayment_txn = Transaction.objects.create(
+                account=account,
+                destination_account=None,
+                transaction_type="LOAN_REPAYMENT",
+                amount=total_due,
+                balance_after=account.balance,
+                reference=generate_transaction_reference(account),
+                description=(
+                    f"Loan #{loan.id} installment "
+                    f"{next_installment.installment_no} repayment"
+                ),
+                status="COMPLETED",
+            )
+
+            log_action(request, "CREATE", repayment_txn)
+
+            ledger.post_loan_repayment(
+                repayment_txn,
+                principal_portion=next_installment.principal_due,
+                interest_portion=next_installment.interest_due,
+                penalty_portion=next_installment.penalty_amount,
+                user=request.user,
+            )
+
+            notifications.notify_transaction(repayment_txn)
+
+            next_installment.amount_paid = total_due
+            next_installment.paid_date = timezone.localdate()
+            next_installment.status = "PAID"
+            next_installment.save(
+                update_fields=["amount_paid", "paid_date", "status"],
+            )
+
+            log_action(request, "UPDATE", next_installment)
+
+            remaining = loan.installments.exclude(status="PAID").exists()
+
+            if not remaining:
+
+                loan.status = "CLOSED"
+                loan.save(update_fields=["status"])
+
+                log_action(
+                    request, "UPDATE", loan, note="Auto-closed: fully repaid",
+                )
+
+            messages.success(
+                request,
+                f"Installment {next_installment.installment_no} "
+                f"(৳{total_due}) paid."
+                + (" Loan fully repaid and closed." if not remaining else ""),
+            )
+
+            return redirect("loan_detail", loan_id=loan.id)
+
+    return render(
+        request,
+        "accounts/loan_repay_confirm.html",
+        {
+            "loan": loan,
+            "installment": next_installment,
+            "total_due": total_due,
         },
     )
 
@@ -2834,3 +3041,478 @@ def employee_update(request, profile_id):
             "title": f"Edit Role - {profile.user.username}",
         },
     )
+
+
+# ============================================================
+# LEDGER (TRIAL BALANCE / CHART OF ACCOUNTS)
+# ============================================================
+
+@login_required
+@permission_required(
+    "accounts.view_chartofaccount",
+    raise_exception=True,
+)
+def trial_balance(request):
+
+    """
+    The proof that the double-entry books actually balance:
+    for every ChartOfAccount, sums its debit and credit
+    journal lines, computes a signed balance according to its
+    normal_balance side, and totals debits vs credits across
+    the whole system - which must always be equal. If they
+    ever aren't, something bypassed accounts.ledger.post_journal_entry
+    and wrote unbalanced entries directly.
+    """
+
+    accounts_qs = ChartOfAccount.objects.all().order_by("code")
+
+    rows = []
+    total_debit = Decimal("0.00")
+    total_credit = Decimal("0.00")
+
+    for coa in accounts_qs:
+
+        totals = coa.journal_lines.aggregate(
+            debit_sum=Sum("debit"),
+            credit_sum=Sum("credit"),
+        )
+
+        debit_sum = totals["debit_sum"] or Decimal("0.00")
+        credit_sum = totals["credit_sum"] or Decimal("0.00")
+
+        if coa.normal_balance == "DEBIT":
+            balance = debit_sum - credit_sum
+        else:
+            balance = credit_sum - debit_sum
+
+        total_debit += debit_sum
+        total_credit += credit_sum
+
+        rows.append({
+            "account": coa,
+            "debit_sum": debit_sum,
+            "credit_sum": credit_sum,
+            "balance": balance,
+        })
+
+    return render(
+        request,
+        "accounts/trial_balance.html",
+        {
+            "rows": rows,
+            "total_debit": total_debit,
+            "total_credit": total_credit,
+            "is_balanced": total_debit == total_credit,
+        },
+    )
+
+
+@login_required
+@permission_required(
+    "accounts.view_chartofaccount",
+    raise_exception=True,
+)
+def ledger_account_detail(request, coa_id):
+
+    coa = get_object_or_404(ChartOfAccount, id=coa_id)
+
+    lines = (
+        coa.journal_lines
+        .select_related("journal_entry", "bank_account")
+        .order_by("-journal_entry__created_at", "-id")
+    )
+
+    running_balance = Decimal("0.00")
+    rows = []
+
+    # Compute running balance oldest-first, then reverse for
+    # newest-first display.
+    for line in reversed(list(lines)):
+
+        if coa.normal_balance == "DEBIT":
+            running_balance += line.debit - line.credit
+        else:
+            running_balance += line.credit - line.debit
+
+        rows.append({
+            "line": line,
+            "running_balance": running_balance,
+        })
+
+    rows.reverse()
+
+    return render(
+        request,
+        "accounts/ledger_account_detail.html",
+        {
+            "coa": coa,
+            "rows": rows,
+        },
+    )
+
+
+# ============================================================
+# FEE RULES
+# ============================================================
+
+@login_required
+@permission_required(
+    "accounts.view_feerule",
+    raise_exception=True,
+)
+def fee_rule_list(request):
+
+    fee_rules = FeeRule.objects.all().order_by("transaction_type", "name")
+
+    return render(
+        request,
+        "accounts/fee_rule_list.html",
+        {
+            "fee_rules": fee_rules,
+        },
+    )
+
+
+@login_required
+@permission_required(
+    "accounts.add_feerule",
+    raise_exception=True,
+)
+def fee_rule_create(request):
+
+    if request.method == "POST":
+
+        form = FeeRuleForm(request.POST)
+
+        if form.is_valid():
+
+            fee_rule = form.save()
+
+            log_action(request, "CREATE", fee_rule)
+
+            messages.success(
+                request,
+                f"Fee rule '{fee_rule.name}' created "
+                f"({'active' if fee_rule.is_active else 'inactive'}).",
+            )
+
+            return redirect("fee_rule_list")
+
+    else:
+
+        form = FeeRuleForm()
+
+    return render(
+        request,
+        "accounts/fee_rule_form.html",
+        {
+            "form": form,
+            "title": "New Fee Rule",
+        },
+    )
+
+
+@login_required
+@permission_required(
+    "accounts.change_feerule",
+    raise_exception=True,
+)
+def fee_rule_update(request, fee_rule_id):
+
+    fee_rule = get_object_or_404(FeeRule, id=fee_rule_id)
+
+    if request.method == "POST":
+
+        form = FeeRuleForm(request.POST, instance=fee_rule)
+
+        if form.is_valid():
+
+            fee_rule = form.save()
+
+            log_action(request, "UPDATE", fee_rule)
+
+            messages.success(
+                request,
+                f"Fee rule '{fee_rule.name}' updated.",
+            )
+
+            return redirect("fee_rule_list")
+
+    else:
+
+        form = FeeRuleForm(instance=fee_rule)
+
+    return render(
+        request,
+        "accounts/fee_rule_form.html",
+        {
+            "form": form,
+            "fee_rule": fee_rule,
+            "title": f"Edit Fee Rule - {fee_rule.name}",
+        },
+    )
+
+
+# ============================================================
+# CUSTOMER PORTAL ACCESS (staff-managed)
+# ============================================================
+
+@login_required
+@permission_required(
+    "accounts.change_customer",
+    raise_exception=True,
+)
+def customer_portal_enable(request, customer_id):
+
+    """
+    Creates a Django User + CustomerPortalAccount for a
+    customer who doesn't have one yet, with a random generated
+    password shown ONCE on the confirmation page - staff must
+    communicate it to the customer through a separate secure
+    channel (never emailed in plaintext).
+    """
+
+    import secrets
+
+    customer = get_object_or_404(Customer, id=customer_id)
+
+    if hasattr(customer, "portal_account"):
+
+        messages.warning(
+            request,
+            f"{customer.name} already has portal access.",
+        )
+
+        return redirect("customer_detail", customer_id=customer.id)
+
+    if request.method == "POST":
+
+        username = request.POST.get("username", "").strip()
+
+        if not username:
+
+            messages.error(request, "Username is required.")
+
+            return render(
+                request,
+                "accounts/customer_portal_enable.html",
+                {"customer": customer},
+            )
+
+        if User.objects.filter(username=username).exists():
+
+            messages.error(
+                request,
+                f"Username '{username}' is already taken.",
+            )
+
+            return render(
+                request,
+                "accounts/customer_portal_enable.html",
+                {"customer": customer},
+            )
+
+        password = secrets.token_urlsafe(9)
+
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            email=customer.email,
+            is_staff=False,
+        )
+
+        portal_account = CustomerPortalAccount.objects.create(
+            user=user, customer=customer,
+        )
+
+        log_action(request, "CREATE", portal_account)
+
+        notifications.notify_portal_account_created(customer, username)
+
+        return render(
+            request,
+            "accounts/customer_portal_created.html",
+            {
+                "customer": customer,
+                "username": username,
+                "password": password,
+            },
+        )
+
+    return render(
+        request,
+        "accounts/customer_portal_enable.html",
+        {
+            "customer": customer,
+        },
+    )
+
+
+@login_required
+@permission_required(
+    "accounts.change_customer",
+    raise_exception=True,
+)
+def customer_portal_reset_password(request, customer_id):
+
+    import secrets
+
+    customer = get_object_or_404(Customer, id=customer_id)
+
+    portal_account = get_object_or_404(
+        CustomerPortalAccount, customer=customer,
+    )
+
+    if request.method == "POST":
+
+        password = secrets.token_urlsafe(9)
+
+        portal_account.user.set_password(password)
+        portal_account.user.save()
+
+        log_action(
+            request, "UPDATE", portal_account, note="Password reset",
+        )
+
+        return render(
+            request,
+            "accounts/customer_portal_created.html",
+            {
+                "customer": customer,
+                "username": portal_account.user.username,
+                "password": password,
+                "is_reset": True,
+            },
+        )
+
+    return render(
+        request,
+        "accounts/customer_portal_reset_confirm.html",
+        {
+            "customer": customer,
+        },
+    )
+
+
+# ============================================================
+# FRAUD ALERTS
+# ============================================================
+
+@login_required
+@permission_required(
+    "accounts.view_fraudalert",
+    raise_exception=True,
+)
+def fraud_alert_list(request):
+
+    status = request.GET.get("status", "").strip()
+
+    alerts = (
+        FraudAlert.objects
+        .select_related(
+            "transaction",
+            "transaction__account",
+            "transaction__account__customer",
+        )
+        .all()
+    )
+
+    alerts = scope_to_branch(
+        alerts, request.user, branch_field="transaction__account__branch",
+    )
+
+    if status:
+        alerts = alerts.filter(status=status)
+
+    return render(
+        request,
+        "accounts/fraud_alert_list.html",
+        {
+            "alerts": alerts,
+            "status": status,
+        },
+    )
+
+
+@login_required
+@permission_required(
+    "accounts.view_fraudalert",
+    raise_exception=True,
+)
+def fraud_alert_detail(request, alert_id):
+
+    alert = get_object_or_404(
+        FraudAlert.objects.select_related(
+            "transaction",
+            "transaction__account",
+            "transaction__account__customer",
+        ),
+        id=alert_id,
+    )
+
+    return render(
+        request,
+        "accounts/fraud_alert_detail.html",
+        {
+            "alert": alert,
+        },
+    )
+
+
+@login_required
+@permission_required(
+    "accounts.change_fraudalert",
+    raise_exception=True,
+)
+def fraud_alert_resolve(request, alert_id):
+
+    alert = get_object_or_404(FraudAlert, id=alert_id)
+
+    if request.method == "POST":
+
+        new_status = request.POST.get("status")
+
+        if new_status not in ("CONFIRMED_FRAUD", "FALSE_POSITIVE"):
+
+            messages.error(request, "Invalid resolution status.")
+
+            return redirect("fraud_alert_detail", alert_id=alert.id)
+
+        alert.status = new_status
+        alert.reviewed_by = request.user
+        alert.reviewed_at = timezone.now()
+
+        alert.save(
+            update_fields=["status", "reviewed_by", "reviewed_at"],
+        )
+
+        log_action(
+            request, "UPDATE", alert,
+            note=f"Resolved as {alert.get_status_display()}",
+        )
+
+        if new_status == "CONFIRMED_FRAUD":
+
+            account = alert.transaction.account
+
+            account.status = "BLOCKED"
+            account.save(update_fields=["status"])
+
+            log_action(
+                request, "UPDATE", account,
+                note=f"Blocked due to confirmed fraud alert #{alert.id}",
+            )
+
+            messages.warning(
+                request,
+                f"Alert confirmed as fraud. Account "
+                f"{account.account_number} has been blocked.",
+            )
+
+        else:
+
+            messages.success(request, "Alert marked as false positive.")
+
+        return redirect("fraud_alert_list")
+
+    return redirect("fraud_alert_detail", alert_id=alert.id)

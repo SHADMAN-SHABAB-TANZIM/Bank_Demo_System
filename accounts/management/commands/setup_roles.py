@@ -20,6 +20,7 @@ ROLES = {
         "transaction": ["view"],
         "standingorder": ["view"],
         "loan": ["view"],
+        "loaninstallment": ["view"],
         "branch": ["view"],
     },
 
@@ -29,6 +30,7 @@ ROLES = {
         "transaction": ["view", "add"],
         "standingorder": ["view"],
         "loan": ["view"],
+        "loaninstallment": ["view"],
         "branch": ["view"],
     },
 
@@ -38,6 +40,7 @@ ROLES = {
         "transaction": ["view", "add"],
         "standingorder": ["view", "add"],
         "loan": ["view", "add"],
+        "loaninstallment": ["view"],
         "branch": ["view"],
     },
 
@@ -47,8 +50,12 @@ ROLES = {
         "transaction": ["view", "add", "change"],
         "standingorder": ["view", "add", "change"],
         "loan": ["view", "add", "change"],
+        "loaninstallment": ["view", "add", "change"],
         "branch": ["view"],
         "employeeprofile": ["view"],
+        "chartofaccount": ["view"],
+        "feerule": ["view"],
+        "fraudalert": ["view", "change"],
     },
 
     "B_ADMIN": {
@@ -57,10 +64,14 @@ ROLES = {
         "transaction": ["view", "add", "change", "delete"],
         "standingorder": ["view", "add", "change", "delete"],
         "loan": ["view", "add", "change", "delete"],
+        "loaninstallment": ["view", "add", "change", "delete"],
         "auditlog": ["view"],
         "dailysnapshot": ["view"],
         "branch": ["view", "add", "change", "delete"],
         "employeeprofile": ["view", "add", "change", "delete"],
+        "chartofaccount": ["view", "add", "change"],
+        "feerule": ["view", "add", "change"],
+        "fraudalert": ["view", "change"],
     },
 
 }

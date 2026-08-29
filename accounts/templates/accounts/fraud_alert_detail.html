@@ -1,0 +1,120 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Fraud Alert Review
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Fraud Alert Review</h1>
+
+    <br>
+
+    <div class="card">
+
+        <h2>Risk Score: {{ alert.risk_score }} / 100</h2>
+
+        <p>
+            <strong>Status:</strong>
+            {{ alert.get_status_display }}
+        </p>
+
+        <p>
+            <strong>Flagged:</strong>
+            {{ alert.created_at }}
+        </p>
+
+        <p>
+            <strong>Reason(s):</strong>
+        </p>
+
+        <ul>
+            {% for line in alert.reason.splitlines %}
+                <li>{{ line }}</li>
+            {% endfor %}
+        </ul>
+
+        {% if alert.reviewed_by %}
+
+            <p>
+                <strong>Reviewed by:</strong>
+                {{ alert.reviewed_by.username }} on {{ alert.reviewed_at }}
+            </p>
+
+        {% endif %}
+
+    </div>
+
+    <br>
+
+    <div class="card">
+
+        <h2>Transaction Details</h2>
+
+        <p>
+            <strong>Reference:</strong>
+            <a href="{% url 'transaction_detail' alert.transaction.id %}">
+                {{ alert.transaction.reference }}
+            </a>
+        </p>
+
+        <p>
+            <strong>Account:</strong>
+            {{ alert.transaction.account.account_number }}
+            ({{ alert.transaction.account.customer.name }})
+        </p>
+
+        <p>
+            <strong>Type:</strong>
+            {{ alert.transaction.get_transaction_type_display }}
+        </p>
+
+        <p>
+            <strong>Amount:</strong>
+            ৳{{ alert.transaction.amount|floatformat:2 }}
+        </p>
+
+    </div>
+
+    <br>
+
+    {% if alert.status == "PENDING_REVIEW" %}
+
+        <div class="card">
+
+            <h2>Resolve This Alert</h2>
+
+            <p>
+                Confirming fraud will immediately block the account
+                ({{ alert.transaction.account.account_number }}).
+            </p>
+
+            <form method="post" action="{% url 'fraud_alert_resolve' alert.id %}">
+
+                {% csrf_token %}
+
+                <button type="submit" name="status" value="FALSE_POSITIVE">
+                    Mark False Positive
+                </button>
+
+                <button type="submit" name="status" value="CONFIRMED_FRAUD">
+                    Confirm Fraud &amp; Block Account
+                </button>
+
+            </form>
+
+        </div>
+
+        <br>
+
+    {% endif %}
+
+    <a href="{% url 'fraud_alert_list' %}">
+        ← Back to Fraud Alerts
+    </a>
+
+</div>
+
+{% endblock %}

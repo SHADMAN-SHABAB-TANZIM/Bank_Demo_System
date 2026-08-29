@@ -203,3 +203,31 @@ def filter_transactions(request, queryset):
         queryset = queryset.filter(created_at__date__lte=date_to)
 
     return queryset
+
+
+def calculate_fee(transaction_type, amount):
+
+    """
+    Looks up the first active FeeRule for `transaction_type`
+    and computes the fee for `amount`. Returns Decimal("0.00")
+    if no active rule matches - fees are opt-in, so this is
+    the safe default when nothing's been configured.
+    """
+
+    from .models import FeeRule
+
+    rule = (
+        FeeRule.objects
+        .filter(transaction_type=transaction_type, is_active=True)
+        .first()
+    )
+
+    if rule is None:
+        return Decimal("0.00")
+
+    if rule.fee_type == "FLAT":
+        fee = rule.amount
+    else:
+        fee = (amount * rule.amount / Decimal("100"))
+
+    return fee.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)

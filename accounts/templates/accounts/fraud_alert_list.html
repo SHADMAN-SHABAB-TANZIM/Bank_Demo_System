@@ -1,0 +1,115 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Fraud Alerts
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="page-header">
+        <div>
+            <h1>Fraud Alerts</h1>
+            <p class="page-subtitle">
+                Transactions flagged by the rule engine for review
+            </p>
+        </div>
+    </div>
+
+    <form method="get" class="transaction-filter">
+
+        <div class="transaction-filter-group">
+
+            <select name="status">
+                <option value="">All Statuses</option>
+                <option value="PENDING_REVIEW" {% if status == "PENDING_REVIEW" %}selected{% endif %}>Pending Review</option>
+                <option value="CONFIRMED_FRAUD" {% if status == "CONFIRMED_FRAUD" %}selected{% endif %}>Confirmed Fraud</option>
+                <option value="FALSE_POSITIVE" {% if status == "FALSE_POSITIVE" %}selected{% endif %}>False Positive</option>
+            </select>
+
+            <button type="submit">Filter</button>
+
+            {% if status %}
+                <a href="{% url 'fraud_alert_list' %}" class="clear-filter">Clear</a>
+            {% endif %}
+
+        </div>
+
+    </form>
+
+    {% if alerts %}
+
+        <div class="transaction-table-wrapper">
+
+            <table class="transaction-table">
+
+                <thead>
+                    <tr>
+                        <th>Risk</th>
+                        <th>Transaction</th>
+                        <th>Account</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Flagged</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for alert in alerts %}
+
+                    <tr>
+
+                        <td>
+                            <strong>{{ alert.risk_score }}</strong>
+                        </td>
+
+                        <td>{{ alert.transaction.reference }}</td>
+
+                        <td>{{ alert.transaction.account.account_number }}</td>
+
+                        <td>{{ alert.transaction.account.customer.name }}</td>
+
+                        <td class="transaction-amount">
+                            ৳{{ alert.transaction.amount|floatformat:2 }}
+                        </td>
+
+                        <td>
+                            <span class="transaction-status transaction-status-{{ alert.status|lower }}">
+                                {{ alert.get_status_display }}
+                            </span>
+                        </td>
+
+                        <td>{{ alert.created_at|date:"M d, Y, g:i a" }}</td>
+
+                        <td>
+                            <a href="{% url 'fraud_alert_detail' alert.id %}" class="transaction-view">
+                                Review
+                            </a>
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <div class="no-transactions">
+            <h2>No Alerts</h2>
+            <p>No transactions have been flagged{% if status %} with this status{% endif %}.</p>
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

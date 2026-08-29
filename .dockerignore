@@ -4,6 +4,11 @@ __pycache__/
 db.sqlite3
 .env
 *.log
+.git/
+.gitignore
 staticfiles/
 media/
 .vscode/
+Dockerfile
+docker-compose.yml
+.dockerignore

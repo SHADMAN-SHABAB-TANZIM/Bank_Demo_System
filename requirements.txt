@@ -1,0 +1,48 @@
+# Core
+Django==6.1
+asgiref==3.12.1
+sqlparse==0.5.5
+tzdata==2026.3
+
+# REST API
+djangorestframework==3.18.0
+djangorestframework-simplejwt==5.5.1
+PyJWT==2.13.0
+django-filter==26.1
+
+# Security
+django-axes==8.3.1
+
+# Background jobs / scheduling (Celery + Redis)
+celery==5.6.3
+kombu==5.6.2
+amqp==5.3.1
+billiard==4.2.4
+vine==5.1.0
+click==8.5.0
+click-didyoumean==0.3.1
+click-repl==0.3.0
+click-plugins==1.1.1
+python-dateutil==2.9.0.post0
+tzlocal==5.3.1
+redis==8.1.0
+
+# Deployment
+dj-database-url==3.1.2
+gunicorn==26.2.0
+
+# ------------------------------------------------------------
+# NOT included above - install manually if you need them, since
+# both have compiled/platform-specific binaries that can't be
+# safely bundled as pure-Python cross-platform wheels:
+#
+#   pip install cryptography      # enables real PII encryption
+#                                  # (accounts/fields.py) - the app
+#                                  # runs fine without it, storing
+#                                  # those fields in plaintext with
+#                                  # a warning instead.
+#
+#   pip install psycopg2-binary   # needed only if DATABASE_URL
+#                                  # points at PostgreSQL instead
+#                                  # of the default SQLite file.
+# ------------------------------------------------------------

@@ -1,0 +1,82 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+My Loans
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="page-header">
+        <div>
+            <h1>My Loans</h1>
+            <p class="page-subtitle">Your loan accounts and repayment status</p>
+        </div>
+    </div>
+
+    {% if loans %}
+
+        <div class="transaction-table-wrapper">
+
+            <table class="transaction-table">
+
+                <thead>
+                    <tr>
+                        <th>Account</th>
+                        <th>Principal</th>
+                        <th>Rate</th>
+                        <th>Term</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for loan in loans %}
+
+                    <tr>
+
+                        <td>{{ loan.account.account_number }}</td>
+
+                        <td class="transaction-amount">৳{{ loan.principal|floatformat:2 }}</td>
+
+                        <td>{{ loan.annual_rate }}%</td>
+
+                        <td>{{ loan.months }} months</td>
+
+                        <td>
+                            <span class="transaction-status transaction-status-{{ loan.status|lower }}">
+                                {{ loan.get_status_display }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <a href="{% url 'portal_loan_detail' loan.id %}" class="transaction-view">
+                                View
+                            </a>
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <div class="no-transactions">
+            <h2>No Loans</h2>
+            <p>You don't have any loans with us yet.</p>
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

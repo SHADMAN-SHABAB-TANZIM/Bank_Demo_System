@@ -3,6 +3,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.core.management.base import BaseCommand
 from django.db import transaction as db_transaction
 
+from accounts import ledger, notifications
 from accounts.models import BankAccount, Transaction
 from accounts.utils import generate_transaction_reference, log_action
 
@@ -113,6 +114,10 @@ class Command(BaseCommand):
                     txn,
                     note="Credited by credit_interest command",
                 )
+
+                ledger.post_interest(txn, user=None)
+
+                notifications.notify_transaction(txn)
 
             self.stdout.write(
                 self.style.SUCCESS(

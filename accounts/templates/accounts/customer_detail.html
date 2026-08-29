@@ -60,6 +60,39 @@ Customer Details
 
     <br>
 
+    <div class="card">
+
+        <h2>Portal Access</h2>
+
+        {% if customer.portal_account %}
+
+            <p>
+                <strong>Username:</strong>
+                {{ customer.portal_account.user.username }}
+            </p>
+
+            <p>
+                <a href="{% url 'customer_portal_reset_password' customer.id %}">
+                    Reset Password
+                </a>
+            </p>
+
+        {% else %}
+
+            <p>
+                This customer does not have online banking access yet.
+            </p>
+
+            <a href="{% url 'customer_portal_enable' customer.id %}">
+                Enable Portal Access
+            </a>
+
+        {% endif %}
+
+    </div>
+
+    <br>
+
     <a href="{% url 'customer_update' customer.id %}">
         Edit Customer
     </a>

@@ -6,12 +6,81 @@ from .models import (
     StandingOrder,
     AuditLog,
     Loan,
+    LoanInstallment,
     DailySnapshot,
     Branch,
     EmployeeProfile,
+    ChartOfAccount,
+    JournalEntry,
+    JournalLine,
+    FeeRule,
+    CustomerPortalAccount,
+    FraudAlert,
 )
 
+
+@admin.register(FraudAlert)
+class FraudAlertAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'transaction', 'risk_score', 'status',
+        'reviewed_by', 'created_at',
+    )
+    list_filter = ('status',)
+    search_fields = ('transaction__reference',)
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(CustomerPortalAccount)
+class CustomerPortalAccountAdmin(admin.ModelAdmin):
+
+    list_display = ('customer', 'user', 'created_at')
+    search_fields = ('customer__name', 'user__username')
+
 admin.site.register(Customer)
+
+
+@admin.register(FeeRule)
+class FeeRuleAdmin(admin.ModelAdmin):
+
+    list_display = ('name', 'transaction_type', 'fee_type', 'amount', 'is_active')
+    list_filter = ('transaction_type', 'fee_type', 'is_active')
+    search_fields = ('name',)
+
+
+class JournalLineInline(admin.TabularInline):
+    model = JournalLine
+    extra = 0
+    readonly_fields = ('account', 'bank_account', 'debit', 'credit')
+    can_delete = False
+
+
+@admin.register(ChartOfAccount)
+class ChartOfAccountAdmin(admin.ModelAdmin):
+
+    list_display = ('code', 'name', 'account_type', 'is_active')
+    list_filter = ('account_type', 'is_active')
+    search_fields = ('code', 'name')
+
+
+@admin.register(JournalEntry)
+class JournalEntryAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'reference', 'description', 'source_transaction',
+        'created_by', 'created_at',
+    )
+    list_filter = ('created_at',)
+    search_fields = ('reference', 'description')
+    inlines = [JournalLineInline]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Branch)
@@ -50,6 +119,18 @@ class LoanAdmin(admin.ModelAdmin):
     search_fields = (
         'account__account_number',
     )
+
+
+@admin.register(LoanInstallment)
+class LoanInstallmentAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'loan', 'installment_no', 'due_date', 'total_due',
+        'penalty_amount', 'status', 'paid_date',
+    )
+
+    list_filter = ('status',)
+    search_fields = ('loan__account__account_number',)
 
 
 @admin.register(DailySnapshot)

@@ -1,0 +1,99 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+{{ coa.name }}
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="page-header">
+        <div>
+            <h1>{{ coa.code }} - {{ coa.name }}</h1>
+
+            <p class="page-subtitle">
+                {{ coa.get_account_type_display }} account -
+                normal balance: {{ coa.normal_balance }}
+            </p>
+        </div>
+
+        <a
+            href="{% url 'trial_balance' %}"
+            class="primary-link"
+        >
+            ← Back to Trial Balance
+        </a>
+    </div>
+
+
+    {% if rows %}
+
+        <div class="transaction-table-wrapper">
+
+            <table class="transaction-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Date</th>
+                        <th>Journal Entry</th>
+                        <th>Description</th>
+                        <th>Account</th>
+                        <th>Debit</th>
+                        <th>Credit</th>
+                        <th>Balance</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for row in rows %}
+
+                    <tr>
+
+                        <td>
+                            {{ row.line.journal_entry.created_at|date:"M d, Y, g:i a" }}
+                        </td>
+
+                        <td>{{ row.line.journal_entry.reference }}</td>
+
+                        <td>{{ row.line.journal_entry.description }}</td>
+
+                        <td>{{ row.line.bank_account.account_number|default:"—" }}</td>
+
+                        <td class="transaction-amount">
+                            {% if row.line.debit %}৳{{ row.line.debit|floatformat:2 }}{% endif %}
+                        </td>
+
+                        <td class="transaction-amount">
+                            {% if row.line.credit %}৳{{ row.line.credit|floatformat:2 }}{% endif %}
+                        </td>
+
+                        <td class="transaction-amount">
+                            ৳{{ row.running_balance|floatformat:2 }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <div class="no-transactions">
+            <h2>No Activity Yet</h2>
+            <p>This account has no journal lines yet.</p>
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

@@ -10,6 +10,7 @@ from .models import (
     Loan,
     Branch,
     EmployeeProfile,
+    FeeRule,
 )
 
 
@@ -310,3 +311,25 @@ class EmployeeProfileForm(forms.ModelForm):
             )
 
         return cleaned_data
+
+
+class FeeRuleForm(forms.ModelForm):
+
+    class Meta:
+        model = FeeRule
+
+        fields = [
+            'name',
+            'transaction_type',
+            'fee_type',
+            'amount',
+            'is_active',
+        ]
+
+        widgets = {
+
+            'amount': forms.NumberInput(
+                attrs={'step': '0.01', 'min': '0'}
+            ),
+
+        }

@@ -1,0 +1,43 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Reset Portal Password
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Reset Portal Password</h1>
+
+    <br>
+
+    <div class="card">
+
+        <h2>Are you sure?</h2>
+
+        <p>
+            This will generate a new temporary password for
+            {{ customer.name }}'s online banking login,
+            replacing their current one immediately.
+        </p>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <button type="submit">
+                Yes, Reset Password
+            </button>
+
+            <a href="{% url 'customer_detail' customer.id %}">
+                Cancel
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

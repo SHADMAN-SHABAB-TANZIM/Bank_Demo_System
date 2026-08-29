@@ -42,10 +42,22 @@ Loan Details
         <p><strong>Monthly EMI:</strong> ৳{{ emi|floatformat:2 }}</p>
         <p><strong>Total Payable:</strong> ৳{{ total_payable|floatformat:2 }}</p>
         <p><strong>Total Interest:</strong> ৳{{ total_interest|floatformat:2 }}</p>
+        <p><strong>Total Paid So Far:</strong> ৳{{ total_paid|floatformat:2 }}</p>
 
     </div>
 
     <br>
+
+    {% if next_installment %}
+
+        <a href="{% url 'loan_repay' loan.id %}" class="primary-link">
+            Record Payment (Installment #{{ next_installment.installment_no }},
+            ৳{{ next_installment_total|floatformat:2 }})
+        </a>
+
+        <br><br>
+
+    {% endif %}
 
     {% if loan.status == 'ACTIVE' %}
 
@@ -60,45 +72,74 @@ Loan Details
 
     {% endif %}
 
-    <h2>Amortization Schedule</h2>
+    <h2>Installment Schedule</h2>
 
-    <div class="transaction-table-wrapper">
+    {% if installments %}
 
-        <table class="transaction-table">
+        <div class="transaction-table-wrapper">
 
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Date</th>
-                    <th>Opening Balance</th>
-                    <th>EMI</th>
-                    <th>Interest</th>
-                    <th>Principal</th>
-                    <th>Closing Balance</th>
-                </tr>
-            </thead>
+            <table class="transaction-table">
 
-            <tbody>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Due Date</th>
+                        <th>Principal</th>
+                        <th>Interest</th>
+                        <th>Penalty</th>
+                        <th>Total Due</th>
+                        <th>Status</th>
+                        <th>Paid Date</th>
+                    </tr>
+                </thead>
 
-                {% for row in schedule %}
+                <tbody>
 
-                <tr>
-                    <td>{{ row.month_no }}</td>
-                    <td>{{ row.date|date:"M d, Y" }}</td>
-                    <td>৳{{ row.opening_balance|floatformat:2 }}</td>
-                    <td class="transaction-amount">৳{{ row.emi|floatformat:2 }}</td>
-                    <td>৳{{ row.interest|floatformat:2 }}</td>
-                    <td>৳{{ row.principal|floatformat:2 }}</td>
-                    <td>৳{{ row.closing_balance|floatformat:2 }}</td>
-                </tr>
+                    {% for installment in installments %}
 
-                {% endfor %}
+                    <tr>
+                        <td>{{ installment.installment_no }}</td>
+                        <td>{{ installment.due_date|date:"M d, Y" }}</td>
+                        <td>৳{{ installment.principal_due|floatformat:2 }}</td>
+                        <td>৳{{ installment.interest_due|floatformat:2 }}</td>
+                        <td>
+                            {% if installment.penalty_amount %}
+                                ৳{{ installment.penalty_amount|floatformat:2 }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td class="transaction-amount">৳{{ installment.total_due|floatformat:2 }}</td>
+                        <td>
 
-            </tbody>
+                            {% if installment.status == 'PAID' %}
+                                <span class="transaction-status transaction-status-completed">Paid</span>
+                            {% elif installment.status == 'OVERDUE' %}
+                                <span class="transaction-status transaction-status-failed">Overdue</span>
+                            {% else %}
+                                <span class="transaction-status transaction-status-pending">Pending</span>
+                            {% endif %}
 
-        </table>
+                        </td>
+                        <td>{{ installment.paid_date|date:"M d, Y"|default:"—" }}</td>
+                    </tr>
 
-    </div>
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <p class="page-subtitle">
+            No installment schedule on record for this loan
+            (it may predate installment tracking).
+        </p>
+
+    {% endif %}
 
     <br>
 

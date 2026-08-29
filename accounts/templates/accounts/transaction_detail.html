@@ -59,6 +59,15 @@ Transaction Details
             ৳{{ transaction.amount }}
         </p>
 
+        {% if transaction.fee_amount %}
+
+            <p>
+                <strong>Fee Charged:</strong>
+                ৳{{ transaction.fee_amount }}
+            </p>
+
+        {% endif %}
+
         <p>
             <strong>Balance After:</strong>
             ৳{{ transaction.balance_after }}
@@ -68,6 +77,28 @@ Transaction Details
             <strong>Status:</strong>
             {{ transaction.get_status_display }}
         </p>
+
+        {% if transaction.reverses %}
+
+            <p>
+                <strong>Reverses:</strong>
+                <a href="{% url 'transaction_detail' transaction.reverses.id %}">
+                    {{ transaction.reverses.reference }}
+                </a>
+            </p>
+
+        {% endif %}
+
+        {% if transaction.reversed_by %}
+
+            <p>
+                <strong>Reversed By:</strong>
+                <a href="{% url 'transaction_detail' transaction.reversed_by.id %}">
+                    {{ transaction.reversed_by.reference }}
+                </a>
+            </p>
+
+        {% endif %}
 
         {% if transaction.description %}
 
@@ -87,17 +118,21 @@ Transaction Details
 
     <br>
 
-    <a href="{% url 'transaction_update' transaction.id %}">
-        Edit Transaction
-    </a>
+    {% if transaction.status != "REVERSED" and transaction.transaction_type != "REVERSAL" %}
 
-    <br><br>
+        <a href="{% url 'transaction_update' transaction.id %}">
+            Edit Transaction
+        </a>
 
-    <a href="{% url 'transaction_delete' transaction.id %}">
-        Delete Transaction
-    </a>
+        <br><br>
 
-    <br><br>
+        <a href="{% url 'transaction_reverse' transaction.id %}">
+            Reverse Transaction
+        </a>
+
+        <br><br>
+
+    {% endif %}
 
     <a href="{% url 'transaction_list' %}">
         ← Back to Transactions

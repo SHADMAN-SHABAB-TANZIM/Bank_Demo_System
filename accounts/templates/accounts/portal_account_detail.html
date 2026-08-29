@@ -1,0 +1,111 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Account Statement
+{% endblock %}
+
+{% block content %}
+
+<div class="account-statement-page">
+
+    <div class="statement-header">
+
+        <div>
+            <p class="statement-eyebrow">Account Statement</p>
+            <h1>{{ account.account_number }}</h1>
+            <p class="statement-subtitle">
+                {{ account.get_account_type_display }} account
+            </p>
+        </div>
+
+        <a href="{% url 'portal_dashboard' %}" class="statement-back-button">
+            ← Back to My Accounts
+        </a>
+
+    </div>
+
+
+    <div class="account-summary-card">
+
+        <div class="account-summary-top">
+
+            <div>
+                <p class="account-label">CURRENT BALANCE</p>
+                <h2 class="account-number">৳{{ account.balance|floatformat:2 }}</h2>
+            </div>
+
+            <div class="account-status-badge">
+                {{ account.get_status_display }}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="statement-transactions-card">
+
+        <div class="statement-transactions-header">
+            <div>
+                <h2>Transaction History</h2>
+                <p>Last {{ transactions|length }} transactions</p>
+            </div>
+        </div>
+
+        <div class="transaction-history-list">
+
+            {% if transactions %}
+
+                {% for transaction in transactions %}
+
+                    <div class="statement-transaction-row">
+
+                        <div class="transaction-icon">
+                            {% if transaction.transaction_type == "DEPOSIT" or transaction.transaction_type == "INTEREST" or transaction.transaction_type == "LOAN_DISBURSEMENT" %}
+                                +
+                            {% elif transaction.transaction_type == "WITHDRAW" %}
+                                −
+                            {% else %}
+                                ↔
+                            {% endif %}
+                        </div>
+
+                        <div class="statement-transaction-main">
+                            <div class="statement-transaction-type">{{ transaction.get_transaction_type_display }}</div>
+                            <div class="statement-transaction-reference">{{ transaction.reference }}</div>
+                        </div>
+
+                        <div class="statement-transaction-amount">
+                            ৳{{ transaction.amount|floatformat:2 }}
+                        </div>
+
+                        <div class="statement-transaction-status">
+                            <span class="transaction-status-badge">{{ transaction.get_status_display }}</span>
+                        </div>
+
+                        <div class="statement-transaction-date">
+                            {{ transaction.created_at|date:"M d, Y" }}
+                            <small>{{ transaction.created_at|date:"g:i a" }}</small>
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <div class="statement-empty-state">
+                    <div class="empty-transaction-icon">—</div>
+                    <h3>No Transactions</h3>
+                    <p>This account has no transactions yet.</p>
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

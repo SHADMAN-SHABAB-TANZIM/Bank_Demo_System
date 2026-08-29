@@ -1,0 +1,58 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Enable Portal Access
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Enable Portal Access</h1>
+
+    <br>
+
+    <div class="card">
+
+        <h2>{{ customer.name }}</h2>
+
+        <p>
+            This creates an online banking login for
+            {{ customer.name }}, letting them view their own
+            accounts, transactions, and loans. A temporary
+            password will be generated and shown once - you'll
+            need to share it with the customer through a
+            secure channel (never over email).
+        </p>
+
+        <br>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="id_username">Username</label>
+                <input
+                    type="text"
+                    name="username"
+                    id="id_username"
+                    placeholder="e.g. {{ customer.email }}"
+                >
+            </div>
+
+            <button type="submit">
+                Create Portal Account
+            </button>
+
+            <a href="{% url 'customer_detail' customer.id %}">
+                Cancel
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

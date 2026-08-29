@@ -234,12 +234,16 @@ class Transaction(models.Model):
         ('WITHDRAW', 'Withdrawal'),
         ('TRANSFER', 'Transfer'),
         ('INTEREST', 'Interest'),
+        ('LOAN_DISBURSEMENT', 'Loan Disbursement'),
+        ('LOAN_REPAYMENT', 'Loan Repayment'),
+        ('REVERSAL', 'Reversal'),
     ]
 
     STATUS_CHOICES = [
         ('COMPLETED', 'Completed'),
         ('PENDING', 'Pending'),
         ('FAILED', 'Failed'),
+        ('REVERSED', 'Reversed'),
     ]
 
     account = models.ForeignKey(
@@ -269,6 +273,13 @@ class Transaction(models.Model):
         ]
     )
 
+    fee_amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Fee charged on top of amount, if any (see FeeRule).",
+    )
+
     balance_after = models.DecimalField(
         max_digits=15,
         decimal_places=2
@@ -290,12 +301,179 @@ class Transaction(models.Model):
         default='COMPLETED'
     )
 
+    reverses = models.OneToOneField(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reversed_by',
+        help_text=(
+            "If this is a compensating REVERSAL transaction, "
+            "points to the original transaction it reverses. "
+            "OneToOne so an original can only be reversed once."
+        ),
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True
     )
 
     def __str__(self):
         return f"{self.reference} - {self.transaction_type} - {self.amount}"
+
+class ChartOfAccount(models.Model):
+
+    """
+    The internal accounting ledger's chart of accounts - NOT
+    to be confused with BankAccount (which is a customer's
+    account). Every financial movement posts balanced debit/
+    credit lines against these accounts, per standard
+    double-entry bookkeeping for a bank:
+
+    - ASSET: what the bank owns (cash, loans receivable).
+      Normal balance: DEBIT.
+    - LIABILITY: what the bank owes (customer deposits - a
+      depositor's balance is a liability TO the bank, not an
+      asset of theirs). Normal balance: CREDIT.
+    - INCOME: interest earned on loans, fees collected.
+      Normal balance: CREDIT.
+    - EXPENSE: interest paid to depositors. Normal balance:
+      DEBIT.
+    """
+
+    ACCOUNT_TYPES = [
+        ('ASSET', 'Asset'),
+        ('LIABILITY', 'Liability'),
+        ('EQUITY', 'Equity'),
+        ('INCOME', 'Income'),
+        ('EXPENSE', 'Expense'),
+    ]
+
+    NORMAL_BALANCE_BY_TYPE = {
+        'ASSET': 'DEBIT',
+        'EXPENSE': 'DEBIT',
+        'LIABILITY': 'CREDIT',
+        'EQUITY': 'CREDIT',
+        'INCOME': 'CREDIT',
+    }
+
+    code = models.CharField(max_length=20, unique=True)
+
+    name = models.CharField(max_length=100)
+
+    account_type = models.CharField(
+        max_length=10,
+        choices=ACCOUNT_TYPES,
+    )
+
+    is_active = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['code']
+
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+
+    @property
+    def normal_balance(self):
+        return self.NORMAL_BALANCE_BY_TYPE[self.account_type]
+
+
+class JournalEntry(models.Model):
+
+    """
+    One balanced accounting event - the header for a set of
+    JournalLine debit/credit rows whose totals must be equal.
+    Usually linked back to the customer-facing Transaction
+    that caused it (source_transaction), but can stand alone
+    for pure book entries (e.g. opening balances).
+    """
+
+    reference = models.CharField(max_length=50, unique=True)
+
+    description = models.CharField(max_length=255, blank=True)
+
+    source_transaction = models.ForeignKey(
+        Transaction,
+        on_delete=models.CASCADE,
+        related_name='journal_entries',
+        null=True,
+        blank=True,
+        help_text=(
+            "The customer-facing Transaction that caused this "
+            "entry, if any. Deleting that Transaction cascades "
+            "to remove this entry and its lines too, keeping "
+            "the books consistent with the reversal."
+        ),
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+
+    def __str__(self):
+        return self.reference
+
+
+class JournalLine(models.Model):
+
+    """
+    One debit or credit line within a JournalEntry. Exactly
+    one of debit/credit should be non-zero per line (never
+    both) - that's enforced by accounts.ledger.post_journal_entry
+    rather than a DB constraint, so the validation error message
+    can be specific.
+    """
+
+    journal_entry = models.ForeignKey(
+        JournalEntry,
+        on_delete=models.CASCADE,
+        related_name='lines',
+    )
+
+    account = models.ForeignKey(
+        ChartOfAccount,
+        on_delete=models.PROTECT,
+        related_name='journal_lines',
+    )
+
+    bank_account = models.ForeignKey(
+        BankAccount,
+        on_delete=models.SET_NULL,
+        related_name='journal_lines',
+        null=True,
+        blank=True,
+        help_text=(
+            "The specific customer account this line relates "
+            "to, when the ChartOfAccount is a customer-deposit "
+            "liability account. Blank for bank-internal lines "
+            "like Cash or Interest Income/Expense."
+        ),
+    )
+
+    debit = models.DecimalField(
+        max_digits=15, decimal_places=2, default=Decimal("0.00"),
+    )
+
+    credit = models.DecimalField(
+        max_digits=15, decimal_places=2, default=Decimal("0.00"),
+    )
+
+    def __str__(self):
+        side = f"Dr {self.debit}" if self.debit else f"Cr {self.credit}"
+        return f"{self.account.code} {side}"
+
+
 
 class StandingOrder(models.Model):
 
@@ -467,6 +645,60 @@ class Loan(models.Model):
         )
 
 
+class LoanInstallment(models.Model):
+
+    """
+    One row of a loan's persisted amortization schedule,
+    generated at disbursement time from
+    accounts.utils.amortization_schedule so payment status can
+    actually be tracked (the on-the-fly EMI calculator has no
+    concept of "paid" - this does).
+    """
+
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('PAID', 'Paid'),
+        ('OVERDUE', 'Overdue'),
+    ]
+
+    loan = models.ForeignKey(
+        Loan,
+        on_delete=models.CASCADE,
+        related_name='installments',
+    )
+
+    installment_no = models.PositiveIntegerField()
+
+    due_date = models.DateField()
+
+    principal_due = models.DecimalField(max_digits=15, decimal_places=2)
+
+    interest_due = models.DecimalField(max_digits=15, decimal_places=2)
+
+    total_due = models.DecimalField(max_digits=15, decimal_places=2)
+
+    penalty_amount = models.DecimalField(
+        max_digits=15, decimal_places=2, default=Decimal("0.00"),
+    )
+
+    amount_paid = models.DecimalField(
+        max_digits=15, decimal_places=2, default=Decimal("0.00"),
+    )
+
+    paid_date = models.DateField(null=True, blank=True)
+
+    status = models.CharField(
+        max_length=10, choices=STATUS_CHOICES, default='PENDING',
+    )
+
+    class Meta:
+        ordering = ['loan', 'installment_no']
+        unique_together = [('loan', 'installment_no')]
+
+    def __str__(self):
+        return f"Loan #{self.loan_id} installment {self.installment_no}"
+
+
 class DailySnapshot(models.Model):
 
     """
@@ -503,3 +735,157 @@ class DailySnapshot(models.Model):
 
     def __str__(self):
         return f"Snapshot {self.date}"
+
+
+class FeeRule(models.Model):
+
+    """
+    A configurable fee applied to a given transaction type.
+    Only one active rule per transaction_type is looked up
+    (accounts.utils.calculate_fee takes the first active
+    match). Ships inactive by default via seed_fee_rules -
+    activating one is an explicit admin action, so existing
+    withdraw/transfer behavior is unaffected until a manager
+    opts in.
+    """
+
+    FEE_TRANSACTION_TYPES = [
+        ('WITHDRAW', 'Withdrawal'),
+        ('TRANSFER', 'Transfer'),
+    ]
+
+    FEE_TYPES = [
+        ('FLAT', 'Flat Amount'),
+        ('PERCENTAGE', 'Percentage of Amount'),
+    ]
+
+    name = models.CharField(max_length=100)
+
+    transaction_type = models.CharField(
+        max_length=20,
+        choices=FEE_TRANSACTION_TYPES,
+    )
+
+    fee_type = models.CharField(
+        max_length=12,
+        choices=FEE_TYPES,
+        default='FLAT',
+    )
+
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text=(
+            "For FLAT: the fee in taka. For PERCENTAGE: the "
+            "rate, e.g. 1.50 means 1.5% of the transaction amount."
+        ),
+    )
+
+    is_active = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['transaction_type', 'name']
+
+    def __str__(self):
+
+        if self.fee_type == 'FLAT':
+            rate = f"৳{self.amount}"
+        else:
+            rate = f"{self.amount}%"
+
+        return f"{self.name} ({self.get_transaction_type_display()}, {rate})"
+
+
+class CustomerPortalAccount(models.Model):
+
+    """
+    Links a Django User (login credentials) to a Customer, so
+    that customer can log into the self-service portal and see
+    only their own accounts/transactions/loans. Created by
+    staff via the "Enable Portal Access" action on a customer's
+    detail page (accounts.views.customer_portal_enable) - there
+    is no self-registration flow.
+
+    A User with a linked CustomerPortalAccount is never given
+    is_staff=True, so they're automatically locked out of
+    /admin/ and every staff view (which all require Django
+    model permissions this account is never granted).
+    """
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='customer_profile',
+    )
+
+    customer = models.OneToOneField(
+        Customer,
+        on_delete=models.CASCADE,
+        related_name='portal_account',
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Portal account for {self.customer.name}"
+
+
+class FraudAlert(models.Model):
+
+    """
+    A rule-based fraud flag on a transaction. Flagging is
+    purely additive - it never blocks or delays the underlying
+    transaction (see accounts.fraud), only surfaces it for
+    staff review, matching how most real banking systems layer
+    post-transaction monitoring rather than pre-transaction
+    blocking for a first-pass rule engine.
+    """
+
+    STATUS_CHOICES = [
+        ('PENDING_REVIEW', 'Pending Review'),
+        ('CONFIRMED_FRAUD', 'Confirmed Fraud'),
+        ('FALSE_POSITIVE', 'False Positive'),
+    ]
+
+    transaction = models.ForeignKey(
+        Transaction,
+        on_delete=models.CASCADE,
+        related_name='fraud_alerts',
+    )
+
+    reason = models.TextField(
+        help_text="Which rule(s) matched and why, for the reviewer.",
+    )
+
+    risk_score = models.PositiveIntegerField(
+        help_text="0-100, higher = more suspicious.",
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='PENDING_REVIEW',
+    )
+
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='fraud_alerts_reviewed',
+    )
+
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-risk_score', '-created_at']
+
+    def __str__(self):
+        return (
+            f"Alert on {self.transaction.reference} "
+            f"(score {self.risk_score}, {self.get_status_display()})"
+        )

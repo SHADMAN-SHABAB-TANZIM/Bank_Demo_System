@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -18,14 +21,29 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
+#
+# Every setting below falls back to the original safe local-dev
+# value if its environment variable isn't set, so nothing changes
+# for local development out of the box. Setting DJANGO_DEBUG=False
+# (and the other vars below) is how a real deployment opts into
+# the hardened settings - see the "not DEBUG" block further down
+# for what that unlocks (HSTS, secure cookies, SSL redirect, etc).
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-14y^c1q^c6(-o8z$f758ekc1t(kb6^+c8t)%twwslw)1830@+^'
+# In production, set DJANGO_SECRET_KEY to a long random value via
+# environment variable rather than committing one to source control.
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-14y^c1q^c6(-o8z$f758ekc1t(kb6^+c8t)%twwslw)1830@+^',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ["testserver","127.0.0.1","localhost"]
+ALLOWED_HOSTS = (
+    os.environ.get('DJANGO_ALLOWED_HOSTS', 'testserver,127.0.0.1,localhost')
+    .split(',')
+)
 # Application definition
 
 INSTALLED_APPS = [
@@ -37,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'django_filters',
     'axes',
 
     'accounts',
@@ -103,10 +122,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': (
+        dj_database_url.config(default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
+    )
 }
 
 
@@ -145,14 +163,41 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
+#
+# Defaults to the console backend for local dev/demo - "sending"
+# an email just prints it to the runserver terminal. For a real
+# deployment, set DJANGO_EMAIL_BACKEND to the SMTP backend and
+# provide EMAIL_HOST/PORT/HOST_USER/HOST_PASSWORD/USE_TLS - see
+# .env.example. Only SMTP-specific OPTIONS are included when the
+# SMTP backend is actually selected, since the console backend
+# rejects unrecognized keyword arguments.
+
+_EMAIL_BACKEND = os.environ.get(
+    'DJANGO_EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend',
+)
+
+_MAILER_OPTIONS = {}
+
+if _EMAIL_BACKEND == 'django.core.mail.backends.smtp.EmailBackend':
+
+    _MAILER_OPTIONS = {
+        'host': os.environ.get('EMAIL_HOST', 'localhost'),
+        'port': int(os.environ.get('EMAIL_PORT', '587')),
+        'username': os.environ.get('EMAIL_HOST_USER', ''),
+        'password': os.environ.get('EMAIL_HOST_PASSWORD', ''),
+        'use_tls': os.environ.get('EMAIL_USE_TLS', 'True') == 'True',
+    }
 
 MAILERS = {
     'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+        'BACKEND': _EMAIL_BACKEND,
+        'OPTIONS': _MAILER_OPTIONS,
     },
 }
 
@@ -173,6 +218,7 @@ LOGOUT_REDIRECT_URL = '/login/'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissions',
@@ -189,4 +235,157 @@ REST_FRAMEWORK = {
         'user': '200/hour',
         'anon': '20/hour',
     },
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    # URL-path versioning: /api/v1/... - request.version is
+    # available in views/serializers if version-conditional
+    # logic is ever needed. Only v1 exists today; bumping this
+    # list is how a v2 would be introduced without breaking
+    # existing v1 clients.
+    'DEFAULT_VERSIONING_CLASS': (
+        'rest_framework.versioning.URLPathVersioning'
+    ),
+    'DEFAULT_VERSION': 'v1',
+    'ALLOWED_VERSIONS': ['v1'],
 }
+
+# ============================================================
+# JWT (djangorestframework-simplejwt)
+# ============================================================
+#
+# Alternative to session auth for stateless clients (mobile
+# apps, external systems) that can't rely on Django session
+# cookies. Obtain a token pair at /api/token/, refresh at
+# /api/token/refresh/. Once authenticated via JWT,
+# request.user is populated exactly like session auth, so the
+# same DjangoModelPermissions and branch-scoping apply
+# automatically - no separate authorization logic needed.
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+}
+
+
+# ============================================================
+# EMAIL / NOTIFICATIONS
+# ============================================================
+#
+# MAILERS (above) already defaults to the console backend -
+# "sending" an email just prints it to the runserver terminal,
+# so notifications work out of the box for local dev/demo
+# without any SMTP setup. For a real deployment, change the
+# 'default' mailer's BACKEND (and add HOST/PORT/USER/PASSWORD)
+# to point at a real SMTP provider, ideally via environment
+# variables rather than hardcoding credentials here.
+
+DEFAULT_FROM_EMAIL = 'BANKSYS <noreply@banksys.local>'
+
+
+# ============================================================
+# SESSION SECURITY
+# ============================================================
+#
+# Django's default session lifetime is 2 weeks, which is far
+# too long for a banking application. Sessions expire after
+# 30 minutes of inactivity (SESSION_SAVE_EVERY_REQUEST resets
+# the clock on each request) and always end when the browser
+# closes.
+
+SESSION_COOKIE_AGE = 1800  # 30 minutes
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# ============================================================
+# PRODUCTION SECURITY HARDENING (opt-in via DJANGO_DEBUG=False)
+# ============================================================
+#
+# These only activate when DEBUG is off, so local HTTP
+# development (http://127.0.0.1:8000) is completely unaffected -
+# forcing HTTPS-only cookies/redirects locally would just break
+# the dev server. Deploying behind real HTTPS is what should
+# set DJANGO_DEBUG=False, at which point these all switch on
+# automatically. Confirmed via `manage.py check --deploy`.
+
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = not DEBUG
+
+SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+
+# ============================================================
+# CELERY / REDIS (optional - opt-in via REDIS_URL)
+# ============================================================
+#
+# Wires up background/scheduled execution of the management
+# commands that are otherwise run by hand or via Task
+# Scheduler: credit_interest, run_standing_orders,
+# generate_daily_snapshot, mark_overdue_installments (see
+# accounts/tasks.py). Defaults to redis://localhost:6379/0,
+# matching a local `redis-server` or the `redis` service in
+# docker-compose.yml - override via REDIS_URL for a real
+# deployment. None of this is required for the app to run;
+# it only matters if you're actually running `celery worker`
+# / `celery beat`.
+
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+
+CELERY_BEAT_SCHEDULE = {
+    'run-standing-orders-daily': {
+        'task': 'accounts.tasks.run_standing_orders_task',
+        'schedule': 60 * 60 * 24,  # every 24 hours
+    },
+    'mark-overdue-installments-daily': {
+        'task': 'accounts.tasks.mark_overdue_installments_task',
+        'schedule': 60 * 60 * 24,
+    },
+    'generate-daily-snapshot': {
+        'task': 'accounts.tasks.generate_daily_snapshot_task',
+        'schedule': 60 * 60 * 24,
+    },
+    'credit-interest-monthly': {
+        'task': 'accounts.tasks.credit_interest_task',
+        'schedule': 60 * 60 * 24 * 30,  # approx monthly
+    },
+}
+
+# ============================================================
+# CACHING (optional - uses Redis when REDIS_URL is reachable,
+# falls back to Django's in-process local-memory cache
+# otherwise, so nothing breaks if Redis isn't running)
+# ============================================================
+
+if os.environ.get('REDIS_URL'):
+
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+        }
+    }
+
+else:
+
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        }
+    }

@@ -1,0 +1,88 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+My Transactions
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="page-header">
+        <div>
+            <h1>My Transactions</h1>
+            <p class="page-subtitle">All activity across your accounts</p>
+        </div>
+    </div>
+
+    {% if transactions %}
+
+        <div class="transaction-table-wrapper">
+
+            <table class="transaction-table">
+
+                <thead>
+                    <tr>
+                        <th>Reference</th>
+                        <th>Account</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for transaction in transactions %}
+
+                    <tr>
+
+                        <td>
+                            <div class="transaction-reference">{{ transaction.reference }}</div>
+                        </td>
+
+                        <td>{{ transaction.account.account_number }}</td>
+
+                        <td>
+                            <span class="transaction-type transaction-type-{{ transaction.transaction_type|lower }}">
+                                {{ transaction.get_transaction_type_display }}
+                            </span>
+                        </td>
+
+                        <td class="transaction-amount">
+                            ৳{{ transaction.amount|floatformat:2 }}
+                        </td>
+
+                        <td>
+                            <span class="transaction-status transaction-status-{{ transaction.status|lower }}">
+                                {{ transaction.get_status_display }}
+                            </span>
+                        </td>
+
+                        <td>
+                            {{ transaction.created_at|date:"M d, Y, g:i a" }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <div class="no-transactions">
+            <h2>No Transactions</h2>
+            <p>You don't have any transactions yet.</p>
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

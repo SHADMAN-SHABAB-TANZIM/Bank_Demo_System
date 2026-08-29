@@ -1,0 +1,132 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Fee Rules
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="page-header">
+        <div>
+            <h1>Fee Rules</h1>
+
+            <p class="page-subtitle">
+                Configure fees charged on withdrawals and transfers.
+                New rules are inactive until you switch them on.
+            </p>
+        </div>
+
+        <a
+            href="{% url 'fee_rule_create' %}"
+            class="primary-link"
+        >
+            + Add Fee Rule
+        </a>
+    </div>
+
+
+    {% if fee_rules %}
+
+        <div class="transaction-table-wrapper">
+
+            <table class="transaction-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Name</th>
+                        <th>Applies To</th>
+                        <th>Fee</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for rule in fee_rules %}
+
+                    <tr>
+
+                        <td>{{ rule.name }}</td>
+
+                        <td>
+                            <span class="transaction-type transaction-type-transfer">
+                                {{ rule.get_transaction_type_display }}
+                            </span>
+                        </td>
+
+                        <td>
+
+                            {% if rule.fee_type == "FLAT" %}
+                                ৳{{ rule.amount|floatformat:2 }} flat
+                            {% else %}
+                                {{ rule.amount }}% of amount
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            {% if rule.is_active %}
+
+                                <span class="transaction-status transaction-status-completed">
+                                    Active
+                                </span>
+
+                            {% else %}
+
+                                <span class="transaction-status transaction-status-failed">
+                                    Inactive
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            <a
+                                href="{% url 'fee_rule_update' rule.id %}"
+                                class="transaction-view"
+                            >
+                                Edit
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <div class="no-transactions">
+
+            <h2>No Fee Rules Yet</h2>
+
+            <p>
+                Run <code>python manage.py seed_fee_rules</code> for
+                sensible defaults (created inactive), or add one manually.
+            </p>
+
+            <a href="{% url 'fee_rule_create' %}">
+                + Add Fee Rule
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

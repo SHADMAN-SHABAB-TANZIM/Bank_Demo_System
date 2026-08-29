@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction as db_transaction
 from django.utils import timezone
 
+from accounts import ledger, notifications
 from accounts.models import BankAccount, StandingOrder, Transaction
 from accounts.utils import generate_transaction_reference, log_action
 
@@ -142,6 +143,10 @@ class Command(BaseCommand):
                         txn,
                         note=f"Executed by standing order #{order.id}",
                     )
+
+                    ledger.post_transfer(txn, user=None)
+
+                    notifications.notify_transaction(txn)
 
                 self.stdout.write(
                     self.style.SUCCESS(

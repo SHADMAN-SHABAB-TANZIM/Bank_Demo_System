@@ -35,6 +35,22 @@
 
 <div class="nav-links">
 
+{% if user.customer_profile %}
+
+<a href="{% url 'portal_dashboard' %}">
+    My Accounts
+</a>
+
+<a href="{% url 'portal_transaction_list' %}">
+    My Transactions
+</a>
+
+<a href="{% url 'portal_loan_list' %}">
+    My Loans
+</a>
+
+{% else %}
+
     <a href="{% url 'home' %}">
         Home
     </a>
@@ -79,6 +95,26 @@
 <a href="{% url 'employee_list' %}">
     Employees
 </a>
+{% endif %}
+
+{% if perms.accounts.view_chartofaccount %}
+<a href="{% url 'trial_balance' %}">
+    Ledger
+</a>
+{% endif %}
+
+{% if perms.accounts.view_feerule %}
+<a href="{% url 'fee_rule_list' %}">
+    Fee Rules
+</a>
+{% endif %}
+
+{% if perms.accounts.view_fraudalert %}
+<a href="{% url 'fraud_alert_list' %}">
+    Fraud Alerts
+</a>
+{% endif %}
+
 {% endif %}
 
 </div>

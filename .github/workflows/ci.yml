@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: banksys_ci
+          POSTGRES_USER: banksys
+          POSTGRES_PASSWORD: banksys_ci_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install cryptography psycopg2-binary
+
+      - name: Run Django system checks
+        env:
+          DJANGO_SECRET_KEY: ci-only-secret-key-not-for-production
+          DATABASE_URL: postgres://banksys:banksys_ci_password@localhost:5432/banksys_ci
+          REDIS_URL: redis://localhost:6379/0
+        run: python manage.py check
+
+      - name: Run migrations
+        env:
+          DJANGO_SECRET_KEY: ci-only-secret-key-not-for-production
+          DATABASE_URL: postgres://banksys:banksys_ci_password@localhost:5432/banksys_ci
+          REDIS_URL: redis://localhost:6379/0
+        run: python manage.py migrate
+
+      - name: Run test suite
+        env:
+          DJANGO_SECRET_KEY: ci-only-secret-key-not-for-production
+          DATABASE_URL: postgres://banksys:banksys_ci_password@localhost:5432/banksys_ci
+          REDIS_URL: redis://localhost:6379/0
+        run: python manage.py test accounts
+
+      - name: Check deploy-readiness with DEBUG off
+        env:
+          DJANGO_SECRET_KEY: ci-only-secret-key-not-for-production
+          DJANGO_DEBUG: "False"
+          DJANGO_ALLOWED_HOSTS: ci.example.com
+          DATABASE_URL: postgres://banksys:banksys_ci_password@localhost:5432/banksys_ci
+          REDIS_URL: redis://localhost:6379/0
+        run: python manage.py check --deploy
