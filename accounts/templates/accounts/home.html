@@ -50,6 +50,83 @@ Dashboard
 
 
     <!-- =====================================================
+         NEEDS ATTENTION
+    ====================================================== -->
+
+    {% if pending_fraud_alerts_count or overdue_installments_count %}
+
+        <section class="attention-panel">
+
+            <div class="attention-panel-header">
+
+                <div class="attention-panel-icon">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 3 6v4.2c0 4 3 6.4 7 7.8 4-1.4 7-3.8 7-7.8V6l-7-3Z"/><path d="M10 8.2v3M10 13.7v.1"/></svg>
+                </div>
+
+                <div>
+                    <h2>Needs Attention</h2>
+                    <p>Items flagged for staff review</p>
+                </div>
+
+            </div>
+
+            <div class="attention-panel-grid">
+
+                {% if pending_fraud_alerts_count %}
+
+                    <a href="{% url 'fraud_alert_list' %}?status=PENDING_REVIEW" class="attention-item attention-item-danger">
+                        <span class="attention-item-count">{{ pending_fraud_alerts_count }}</span>
+                        <span class="attention-item-label">
+                            Fraud alert{{ pending_fraud_alerts_count|pluralize }} pending review
+                        </span>
+                    </a>
+
+                {% endif %}
+
+                {% if overdue_installments_count %}
+
+                    <a href="{% url 'loan_list' %}" class="attention-item attention-item-warning">
+                        <span class="attention-item-count">{{ overdue_installments_count }}</span>
+                        <span class="attention-item-label">
+                            Overdue loan installment{{ overdue_installments_count|pluralize }}
+                        </span>
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+            {% if pending_fraud_alerts %}
+
+                <div class="attention-panel-list">
+
+                    {% for alert in pending_fraud_alerts %}
+
+                        <a href="{% url 'fraud_alert_detail' alert.id %}" class="attention-row">
+
+                            <span class="attention-row-score">{{ alert.risk_score }}</span>
+
+                            <span class="attention-row-main">
+                                <strong>{{ alert.transaction.account.account_number }}</strong>
+                                <small>{{ alert.transaction.account.customer.name }} &middot; ৳{{ alert.transaction.amount|floatformat:2 }}</small>
+                            </span>
+
+                            <span class="attention-row-arrow">→</span>
+
+                        </a>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+        </section>
+
+    {% endif %}
+
+
+    <!-- =====================================================
          MAIN STATISTICS
     ====================================================== -->
 

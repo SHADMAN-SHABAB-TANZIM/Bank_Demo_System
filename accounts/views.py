@@ -188,6 +188,49 @@ def home(request):
     ]
 
     # --------------------------------------------------------
+    # "Needs Attention" panel - pending fraud alerts and
+    # overdue loan installments, branch-scoped like everything
+    # else. Only queried if the user can actually act on them,
+    # so a Teller with no fraud-review permission doesn't see
+    # a panel they can't do anything about.
+    # --------------------------------------------------------
+
+    pending_fraud_alerts = None
+    overdue_installments_count = 0
+
+    if request.user.has_perm("accounts.view_fraudalert"):
+
+        pending_fraud_alerts = (
+            scope_to_branch(
+                FraudAlert.objects.filter(status="PENDING_REVIEW"),
+                request.user,
+                branch_field="transaction__account__branch",
+            )
+            .select_related(
+                "transaction", "transaction__account",
+                "transaction__account__customer",
+            )
+            .order_by("-risk_score")[:5]
+        )
+
+        pending_fraud_alerts_count = pending_fraud_alerts.count()
+
+    else:
+
+        pending_fraud_alerts_count = 0
+
+    if request.user.has_perm("accounts.view_loan"):
+
+        overdue_installments_count = (
+            scope_to_branch(
+                LoanInstallment.objects.filter(status="OVERDUE"),
+                request.user,
+                branch_field="loan__account__branch",
+            )
+            .count()
+        )
+
+    # --------------------------------------------------------
     # Dashboard
     # --------------------------------------------------------
 
@@ -214,6 +257,10 @@ def home(request):
             "snapshot_deposits": snapshot_deposits,
             "snapshot_withdrawals": snapshot_withdrawals,
             "snapshot_balance": snapshot_balance,
+
+            "pending_fraud_alerts": pending_fraud_alerts,
+            "pending_fraud_alerts_count": pending_fraud_alerts_count,
+            "overdue_installments_count": overdue_installments_count,
         },
     )
 

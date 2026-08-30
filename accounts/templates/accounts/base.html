@@ -26,121 +26,210 @@
     <div class="background-glow glow-one"></div>
     <div class="background-glow glow-two"></div>
 
+    {% if user.is_authenticated %}
 
-    <nav class="navbar">
+    <button
+        type="button"
+        class="sidebar-toggle"
+        id="sidebarToggle"
+        aria-label="Toggle navigation"
+    >
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
 
-        <div class="nav-logo">
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    {% endif %}
+
+    {% if user.is_authenticated %}
+
+    <nav class="sidebar" id="sidebar">
+
+        <div class="sidebar-logo">
             BANK<span>SYS</span>
         </div>
 
-<div class="nav-links">
+        <div class="sidebar-links">
 
-{% if user.customer_profile %}
+        {% if user.customer_profile %}
 
-<a href="{% url 'portal_dashboard' %}">
-    My Accounts
-</a>
+            <div class="sidebar-group">
 
-<a href="{% url 'portal_transaction_list' %}">
-    My Transactions
-</a>
+                <a href="{% url 'portal_dashboard' %}" class="sidebar-link">
+                    <svg class="sidebar-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 10 3l7 6.5"/><path d="M5 8.5V17h10V8.5"/></svg>
+                    <span>My Accounts</span>
+                </a>
 
-<a href="{% url 'portal_loan_list' %}">
-    My Loans
-</a>
+                <a href="{% url 'portal_transaction_list' %}" class="sidebar-link">
+                    <svg class="sidebar-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11m0 0-3-3m3 3-3 3"/><path d="M16 13H5m0 0 3 3m-3-3 3-3"/></svg>
+                    <span>My Transactions</span>
+                </a>
 
-{% else %}
+                <a href="{% url 'portal_loan_list' %}" class="sidebar-link">
+                    <svg class="sidebar-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M10 6.5v7M12.2 8.1c0-.9-.98-1.6-2.2-1.6-1.22 0-2.2.7-2.2 1.6 0 2.1 4.4 1 4.4 3.1 0 .9-.98 1.6-2.2 1.6-1.22 0-2.2-.7-2.2-1.6"/></svg>
+                    <span>My Loans</span>
+                </a>
 
-    <a href="{% url 'home' %}">
-        Home
-    </a>
+            </div>
 
-    <a href="{% url 'customer_list' %}">
-        Customers
-    </a>
+        {% else %}
 
-<a href="{% url 'bank_account_list' %}">
-    Accounts
-</a>
+            <div class="sidebar-group">
 
-<a href="{% url 'transaction_list' %}">
-    Transactions
-</a>
+                <p class="sidebar-group-label">Overview</p>
 
-{% if perms.accounts.view_standingorder %}
-<a href="{% url 'standing_order_list' %}">
-    Standing Orders
-</a>
-{% endif %}
+                <a href="{% url 'home' %}" class="sidebar-link">
+                    <svg class="sidebar-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 10 3l7 6.5"/><path d="M5 8.5V17h10V8.5"/><path d="M8 17v-4.5h4V17"/></svg>
+                    <span>Home</span>
+                </a>
 
-{% if perms.accounts.view_loan %}
-<a href="{% url 'loan_list' %}">
-    Loans
-</a>
-{% endif %}
+            </div>
 
-{% if perms.accounts.view_auditlog %}
-<a href="{% url 'audit_log_list' %}">
-    Audit Log
-</a>
-{% endif %}
+            <div class="sidebar-group">
 
-{% if perms.accounts.view_branch %}
-<a href="{% url 'branch_list' %}">
-    Branches
-</a>
-{% endif %}
+                <p class="sidebar-group-label">Banking</p>
 
-{% if perms.accounts.view_employeeprofile %}
-<a href="{% url 'employee_list' %}">
-    Employees
-</a>
-{% endif %}
+                <a href="{% url 'customer_list' %}" class="sidebar-link">
+                    <svg class="sidebar-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6.5" r="3"/><path d="M4 17c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
+                    <span>Customers</span>
+                </a>
 
-{% if perms.accounts.view_chartofaccount %}
-<a href="{% url 'trial_balance' %}">
-    Ledger
-</a>
-{% endif %}
+                <a href="{% url 'bank_account_list' %}" class="sidebar-link">
+                    <svg class="sidebar-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8 10 3l7 5"/><path d="M4 8h12v8H4z"/><path d="M7.5 11v3M10 11v3M12.5 11v3"/></svg>
+                    <span>Accounts</span>
+                </a>
 
-{% if perms.accounts.view_feerule %}
-<a href="{% url 'fee_rule_list' %}">
-    Fee Rules
-</a>
-{% endif %}
+                <a href="{% url 'transaction_list' %}" class="sidebar-link">
+                    <svg class="sidebar-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11m0 0-3-3m3 3-3 3"/><path d="M16 13H5m0 0 3 3m-3-3 3-3"/></svg>
+                    <span>Transactions</span>
+                </a>
 
-{% if perms.accounts.view_fraudalert %}
-<a href="{% url 'fraud_alert_list' %}">
-    Fraud Alerts
-</a>
-{% endif %}
+            </div>
 
-{% endif %}
+            {% if perms.accounts.view_standingorder or perms.accounts.view_loan %}
 
-</div>
+            <div class="sidebar-group">
 
+                <p class="sidebar-group-label">Operations</p>
+
+                {% if perms.accounts.view_standingorder %}
+                <a href="{% url 'standing_order_list' %}" class="sidebar-link">
+                    <svg class="sidebar-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 6.5A6 6 0 0 0 5 5.3M4.5 13.5A6 6 0 0 0 15 14.7"/><path d="M15.5 3v3.5H12M4.5 17v-3.5H8"/></svg>
+                    <span>Standing Orders</span>
+                </a>
+                {% endif %}
+
+                {% if perms.accounts.view_loan %}
+                <a href="{% url 'loan_list' %}" class="sidebar-link">
+                    <svg class="sidebar-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M10 6.5v7M12.2 8.1c0-.9-.98-1.6-2.2-1.6-1.22 0-2.2.7-2.2 1.6 0 2.1 4.4 1 4.4 3.1 0 .9-.98 1.6-2.2 1.6-1.22 0-2.2-.7-2.2-1.6"/></svg>
+                    <span>Loans</span>
+                </a>
+                {% endif %}
+
+            </div>
+
+            {% endif %}
+
+            {% if perms.accounts.view_fraudalert or perms.accounts.view_auditlog or perms.accounts.view_chartofaccount %}
+
+            <div class="sidebar-group">
+
+                <p class="sidebar-group-label">Oversight</p>
+
+                {% if perms.accounts.view_fraudalert %}
+                <a href="{% url 'fraud_alert_list' %}" class="sidebar-link">
+                    <svg class="sidebar-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 3 6v4.2c0 4 3 6.4 7 7.8 4-1.4 7-3.8 7-7.8V6l-7-3Z"/><path d="M10 8.2v3M10 13.7v.1"/></svg>
+                    <span>Fraud Alerts</span>
+                </a>
+                {% endif %}
+
+                {% if perms.accounts.view_auditlog %}
+                <a href="{% url 'audit_log_list' %}" class="sidebar-link">
+                    <svg class="sidebar-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.5h7A1.5 1.5 0 0 1 15 5v11a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 5 16V5a1.5 1.5 0 0 1 1.5-1.5Z"/><path d="M8 3.2h4v1.6H8z"/><path d="M7.5 9h5M7.5 11.5h5M7.5 14h3"/></svg>
+                    <span>Audit Log</span>
+                </a>
+                {% endif %}
+
+                {% if perms.accounts.view_chartofaccount %}
+                <a href="{% url 'trial_balance' %}" class="sidebar-link">
+                    <svg class="sidebar-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="13" height="12" rx="1.2"/><path d="M3.5 8.5h13M9.5 4v12"/></svg>
+                    <span>Ledger</span>
+                </a>
+                {% endif %}
+
+            </div>
+
+            {% endif %}
+
+            {% if perms.accounts.view_branch or perms.accounts.view_employeeprofile or perms.accounts.view_feerule %}
+
+            <div class="sidebar-group">
+
+                <p class="sidebar-group-label">Administration</p>
+
+                {% if perms.accounts.view_branch %}
+                <a href="{% url 'branch_list' %}" class="sidebar-link">
+                    <svg class="sidebar-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17s5.5-4.7 5.5-9A5.5 5.5 0 0 0 4.5 8c0 4.3 5.5 9 5.5 9Z"/><circle cx="10" cy="8" r="2"/></svg>
+                    <span>Branches</span>
+                </a>
+                {% endif %}
+
+                {% if perms.accounts.view_employeeprofile %}
+                <a href="{% url 'employee_list' %}" class="sidebar-link">
+                    <svg class="sidebar-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="3.5" width="11" height="13" rx="1.5"/><circle cx="10" cy="8.3" r="1.8"/><path d="M6.7 13.5c.5-1.6 1.8-2.4 3.3-2.4s2.8.8 3.3 2.4"/></svg>
+                    <span>Employees</span>
+                </a>
+                {% endif %}
+
+                {% if perms.accounts.view_feerule %}
+                <a href="{% url 'fee_rule_list' %}" class="sidebar-link">
+                    <svg class="sidebar-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h8l4 4v7a1 1 0 0 1-1 1H4.5a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1H4Z"/><circle cx="8" cy="10.5" r="1.1"/><path d="m8 13.5 4-4"/><circle cx="12" cy="13.5" r="1.1"/></svg>
+                    <span>Fee Rules</span>
+                </a>
+                {% endif %}
+
+            </div>
+
+            {% endif %}
+
+        {% endif %}
+
+        </div>
 
         {% if user.is_authenticated %}
 
-        <div class="nav-user">
+        <div class="sidebar-user">
 
-            <span>
-                {{ user.username }}
-            </span>
+            <div class="sidebar-user-info">
 
-            <a href="{% url 'password_change' %}" class="nav-password-link">
-                Password
-            </a>
+                <div class="sidebar-avatar">
+                    {{ user.username|slice:":1"|upper }}
+                </div>
 
-            <form method="post" action="{% url 'logout' %}">
-                {% csrf_token %}
+                <span class="sidebar-username">
+                    {{ user.username }}
+                </span>
 
-                <button type="submit"
-                        class="nav-logout">
-                    Logout
-                </button>
+            </div>
 
-            </form>
+            <div class="sidebar-user-actions">
+
+                <a href="{% url 'password_change' %}" class="sidebar-icon-button" title="Change password">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="9" width="10" height="7.5" rx="1.3"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9"/></svg>
+                </a>
+
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+
+                    <button type="submit" class="sidebar-icon-button sidebar-logout" title="Logout">
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 17H5.5A1.5 1.5 0 0 1 4 15.5v-11A1.5 1.5 0 0 1 5.5 3H8"/><path d="M13 14l4-4-4-4M17 10H8"/></svg>
+                    </button>
+
+                </form>
+
+            </div>
 
         </div>
 
@@ -148,8 +237,10 @@
 
     </nav>
 
+    {% endif %}
 
-    <main class="main-content">
+
+    <main class="main-content{% if not user.is_authenticated %} main-content-full{% endif %}">
 
         {% if messages %}
 
@@ -182,6 +273,27 @@
 
     </main>
 
+    {% if user.is_authenticated %}
+    <script>
+        (function () {
+            var toggle = document.getElementById('sidebarToggle');
+            var sidebar = document.getElementById('sidebar');
+            var backdrop = document.getElementById('sidebarBackdrop');
+
+            function closeSidebar() {
+                sidebar.classList.remove('sidebar-open');
+                backdrop.classList.remove('sidebar-backdrop-visible');
+            }
+
+            toggle.addEventListener('click', function () {
+                sidebar.classList.toggle('sidebar-open');
+                backdrop.classList.toggle('sidebar-backdrop-visible');
+            });
+
+            backdrop.addEventListener('click', closeSidebar);
+        })();
+    </script>
+    {% endif %}
 
 </body>
 
