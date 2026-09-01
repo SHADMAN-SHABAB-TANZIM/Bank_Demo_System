@@ -1,19 +1,38 @@
-# Core
+# ============================================================
+# CORE DJANGO
+# ============================================================
 Django==6.1
 asgiref==3.12.1
 sqlparse==0.5.5
 tzdata==2026.3
 
+
+# ============================================================
 # REST API
+# ============================================================
 djangorestframework==3.18.0
 djangorestframework-simplejwt==5.5.1
 PyJWT==2.13.0
 django-filter==26.1
 
-# Security
-django-axes==8.3.1
 
-# Background jobs / scheduling (Celery + Redis)
+# ============================================================
+# SECURITY
+# ============================================================
+django-axes==8.3.1
+cryptography==46.0.1
+
+
+# ============================================================
+# DATABASE
+# ============================================================
+dj-database-url==3.1.2
+psycopg2-binary==2.9.11
+
+
+# ============================================================
+# BACKGROUND JOBS / SCHEDULING
+# ============================================================
 celery==5.6.3
 kombu==5.6.2
 amqp==5.3.1
@@ -21,22 +40,14 @@ billiard==4.2.4
 vine==5.1.0
 redis==8.1.0
 
-# Deployment
-dj-database-url==3.1.2
+
+# ============================================================
+# DEPLOYMENT / PRODUCTION SERVER
+# ============================================================
 gunicorn==26.2.0
 
-# ------------------------------------------------------------
-# NOT included above - install manually if you need them, since
-# both have compiled/platform-specific binaries that can't be
-# safely bundled as pure-Python cross-platform wheels:
-#
-#   pip install cryptography      # enables real PII encryption
-#                                  # (accounts/fields.py) - the app
-#                                  # runs fine without it, storing
-#                                  # those fields in plaintext with
-#                                  # a warning instead.
-#
-#   pip install psycopg2-binary   # needed only if DATABASE_URL
-#                                  # points at PostgreSQL instead
-#                                  # of the default SQLite file.
-# ------------------------------------------------------------
+
+# ============================================================
+# STATIC FILE SERVING
+# ============================================================
+whitenoise==6.11.0

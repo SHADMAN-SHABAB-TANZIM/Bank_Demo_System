@@ -86,6 +86,7 @@ AXES_RESET_ON_SUCCESSFUL_LOGIN = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -163,6 +164,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 
@@ -313,13 +315,23 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # set DJANGO_DEBUG=False, at which point these all switch on
 # automatically. Confirmed via `manage.py check --deploy`.
 
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
-SECURE_SSL_REDIRECT = not DEBUG
+# Separate concern from DEBUG: does traffic actually arrive
+# over HTTPS? Defaults to matching "not DEBUG" if unset, so a
+# real deployment behind real HTTPS still gets full hardening
+# automatically. Set DJANGO_USE_HTTPS=False explicitly when
+# DEBUG=False but there's no HTTPS yet (e.g. this project's
+# docker-compose.yml - gunicorn on plain HTTP, no reverse proxy
+# doing TLS termination) - otherwise Django redirects every
+# request to https://... and nothing answers there.
+USE_HTTPS = os.environ.get('DJANGO_USE_HTTPS', str(not DEBUG)) == 'True'
 
-SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000  # 1 year
-SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
-SECURE_HSTS_PRELOAD = not DEBUG
+SESSION_COOKIE_SECURE = USE_HTTPS
+CSRF_COOKIE_SECURE = USE_HTTPS
+SECURE_SSL_REDIRECT = USE_HTTPS
+
+SECURE_HSTS_SECONDS = 31536000 if USE_HTTPS else 0  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = USE_HTTPS
+SECURE_HSTS_PRELOAD = USE_HTTPS
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
