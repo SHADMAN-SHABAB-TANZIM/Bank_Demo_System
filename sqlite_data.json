@@ -1,0 +1,1274 @@
+[
+{
+  "model": "auth.group",
+  "fields": {
+    "name": "Manager",
+    "permissions": [
+      [
+        "delete_bankaccount",
+        "accounts",
+        "bankaccount"
+      ],
+      [
+        "add_customer",
+        "accounts",
+        "customer"
+      ],
+      [
+        "change_customer",
+        "accounts",
+        "customer"
+      ],
+      [
+        "view_customer",
+        "accounts",
+        "customer"
+      ]
+    ]
+  }
+},
+{
+  "model": "auth.group",
+  "fields": {
+    "name": "Employee",
+    "permissions": [
+      [
+        "view_customer",
+        "accounts",
+        "customer"
+      ]
+    ]
+  }
+},
+{
+  "model": "auth.group",
+  "fields": {
+    "name": "B_VIEWER",
+    "permissions": [
+      [
+        "view_bankaccount",
+        "accounts",
+        "bankaccount"
+      ],
+      [
+        "view_branch",
+        "accounts",
+        "branch"
+      ],
+      [
+        "view_customer",
+        "accounts",
+        "customer"
+      ],
+      [
+        "view_loan",
+        "accounts",
+        "loan"
+      ],
+      [
+        "view_loaninstallment",
+        "accounts",
+        "loaninstallment"
+      ],
+      [
+        "view_standingorder",
+        "accounts",
+        "standingorder"
+      ],
+      [
+        "view_transaction",
+        "accounts",
+        "transaction"
+      ]
+    ]
+  }
+},
+{
+  "model": "auth.group",
+  "fields": {
+    "name": "B_TELLER",
+    "permissions": [
+      [
+        "add_bankaccount",
+        "accounts",
+        "bankaccount"
+      ],
+      [
+        "view_bankaccount",
+        "accounts",
+        "bankaccount"
+      ],
+      [
+        "view_branch",
+        "accounts",
+        "branch"
+      ],
+      [
+        "view_customer",
+        "accounts",
+        "customer"
+      ],
+      [
+        "view_loan",
+        "accounts",
+        "loan"
+      ],
+      [
+        "view_loaninstallment",
+        "accounts",
+        "loaninstallment"
+      ],
+      [
+        "view_standingorder",
+        "accounts",
+        "standingorder"
+      ],
+      [
+        "add_transaction",
+        "accounts",
+        "transaction"
+      ],
+      [
+        "view_transaction",
+        "accounts",
+        "transaction"
+      ]
+    ]
+  }
+},
+{
+  "model": "auth.group",
+  "fields": {
+    "name": "B_OFFICER",
+    "permissions": [
+      [
+        "add_bankaccount",
+        "accounts",
+        "bankaccount"
+      ],
+      [
+        "view_bankaccount",
+        "accounts",
+        "bankaccount"
+      ],
+      [
+        "view_branch",
+        "accounts",
+        "branch"
+      ],
+      [
+        "add_customer",
+        "accounts",
+        "customer"
+      ],
+      [
+        "view_customer",
+        "accounts",
+        "customer"
+      ],
+      [
+        "add_loan",
+        "accounts",
+        "loan"
+      ],
+      [
+        "view_loan",
+        "accounts",
+        "loan"
+      ],
+      [
+        "view_loaninstallment",
+        "accounts",
+        "loaninstallment"
+      ],
+      [
+        "add_standingorder",
+        "accounts",
+        "standingorder"
+      ],
+      [
+        "view_standingorder",
+        "accounts",
+        "standingorder"
+      ],
+      [
+        "add_transaction",
+        "accounts",
+        "transaction"
+      ],
+      [
+        "view_transaction",
+        "accounts",
+        "transaction"
+      ]
+    ]
+  }
+},
+{
+  "model": "auth.group",
+  "fields": {
+    "name": "B_MANAGER",
+    "permissions": [
+      [
+        "add_bankaccount",
+        "accounts",
+        "bankaccount"
+      ],
+      [
+        "change_bankaccount",
+        "accounts",
+        "bankaccount"
+      ],
+      [
+        "view_bankaccount",
+        "accounts",
+        "bankaccount"
+      ],
+      [
+        "view_branch",
+        "accounts",
+        "branch"
+      ],
+      [
+        "view_chartofaccount",
+        "accounts",
+        "chartofaccount"
+      ],
+      [
+        "add_customer",
+        "accounts",
+        "customer"
+      ],
+      [
+        "change_customer",
+        "accounts",
+        "customer"
+      ],
+      [
+        "view_customer",
+        "accounts",
+        "customer"
+      ],
+      [
+        "view_employeeprofile",
+        "accounts",
+        "employeeprofile"
+      ],
+      [
+        "view_feerule",
+        "accounts",
+        "feerule"
+      ],
+      [
+        "change_fraudalert",
+        "accounts",
+        "fraudalert"
+      ],
+      [
+        "view_fraudalert",
+        "accounts",
+        "fraudalert"
+      ],
+      [
+        "add_loan",
+        "accounts",
+        "loan"
+      ],
+      [
+        "change_loan",
+        "accounts",
+        "loan"
+      ],
+      [
+        "view_loan",
+        "accounts",
+        "loan"
+      ],
+      [
+        "add_loaninstallment",
+        "accounts",
+        "loaninstallment"
+      ],
+      [
+        "change_loaninstallment",
+        "accounts",
+        "loaninstallment"
+      ],
+      [
+        "view_loaninstallment",
+        "accounts",
+        "loaninstallment"
+      ],
+      [
+        "add_standingorder",
+        "accounts",
+        "standingorder"
+      ],
+      [
+        "change_standingorder",
+        "accounts",
+        "standingorder"
+      ],
+      [
+        "view_standingorder",
+        "accounts",
+        "standingorder"
+      ],
+      [
+        "add_transaction",
+        "accounts",
+        "transaction"
+      ],
+      [
+        "change_transaction",
+        "accounts",
+        "transaction"
+      ],
+      [
+        "view_transaction",
+        "accounts",
+        "transaction"
+      ]
+    ]
+  }
+},
+{
+  "model": "auth.group",
+  "fields": {
+    "name": "B_ADMIN",
+    "permissions": [
+      [
+        "view_auditlog",
+        "accounts",
+        "auditlog"
+      ],
+      [
+        "add_bankaccount",
+        "accounts",
+        "bankaccount"
+      ],
+      [
+        "change_bankaccount",
+        "accounts",
+        "bankaccount"
+      ],
+      [
+        "delete_bankaccount",
+        "accounts",
+        "bankaccount"
+      ],
+      [
+        "view_bankaccount",
+        "accounts",
+        "bankaccount"
+      ],
+      [
+        "add_branch",
+        "accounts",
+        "branch"
+      ],
+      [
+        "change_branch",
+        "accounts",
+        "branch"
+      ],
+      [
+        "delete_branch",
+        "accounts",
+        "branch"
+      ],
+      [
+        "view_branch",
+        "accounts",
+        "branch"
+      ],
+      [
+        "add_chartofaccount",
+        "accounts",
+        "chartofaccount"
+      ],
+      [
+        "change_chartofaccount",
+        "accounts",
+        "chartofaccount"
+      ],
+      [
+        "view_chartofaccount",
+        "accounts",
+        "chartofaccount"
+      ],
+      [
+        "add_customer",
+        "accounts",
+        "customer"
+      ],
+      [
+        "change_customer",
+        "accounts",
+        "customer"
+      ],
+      [
+        "delete_customer",
+        "accounts",
+        "customer"
+      ],
+      [
+        "view_customer",
+        "accounts",
+        "customer"
+      ],
+      [
+        "view_dailysnapshot",
+        "accounts",
+        "dailysnapshot"
+      ],
+      [
+        "add_employeeprofile",
+        "accounts",
+        "employeeprofile"
+      ],
+      [
+        "change_employeeprofile",
+        "accounts",
+        "employeeprofile"
+      ],
+      [
+        "delete_employeeprofile",
+        "accounts",
+        "employeeprofile"
+      ],
+      [
+        "view_employeeprofile",
+        "accounts",
+        "employeeprofile"
+      ],
+      [
+        "add_feerule",
+        "accounts",
+        "feerule"
+      ],
+      [
+        "change_feerule",
+        "accounts",
+        "feerule"
+      ],
+      [
+        "view_feerule",
+        "accounts",
+        "feerule"
+      ],
+      [
+        "change_fraudalert",
+        "accounts",
+        "fraudalert"
+      ],
+      [
+        "view_fraudalert",
+        "accounts",
+        "fraudalert"
+      ],
+      [
+        "add_loan",
+        "accounts",
+        "loan"
+      ],
+      [
+        "change_loan",
+        "accounts",
+        "loan"
+      ],
+      [
+        "delete_loan",
+        "accounts",
+        "loan"
+      ],
+      [
+        "view_loan",
+        "accounts",
+        "loan"
+      ],
+      [
+        "add_loaninstallment",
+        "accounts",
+        "loaninstallment"
+      ],
+      [
+        "change_loaninstallment",
+        "accounts",
+        "loaninstallment"
+      ],
+      [
+        "delete_loaninstallment",
+        "accounts",
+        "loaninstallment"
+      ],
+      [
+        "view_loaninstallment",
+        "accounts",
+        "loaninstallment"
+      ],
+      [
+        "add_standingorder",
+        "accounts",
+        "standingorder"
+      ],
+      [
+        "change_standingorder",
+        "accounts",
+        "standingorder"
+      ],
+      [
+        "delete_standingorder",
+        "accounts",
+        "standingorder"
+      ],
+      [
+        "view_standingorder",
+        "accounts",
+        "standingorder"
+      ],
+      [
+        "add_transaction",
+        "accounts",
+        "transaction"
+      ],
+      [
+        "change_transaction",
+        "accounts",
+        "transaction"
+      ],
+      [
+        "delete_transaction",
+        "accounts",
+        "transaction"
+      ],
+      [
+        "view_transaction",
+        "accounts",
+        "transaction"
+      ]
+    ]
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1500000$6TRPelUjV1oSxnd26SMKvv$gg18tkSHd/AiPHvvK6nirHxp916k2SofoW5AssTAy/U=",
+    "last_login": "2026-09-01T14:58:55.947Z",
+    "is_superuser": true,
+    "username": "admin",
+    "first_name": "",
+    "last_name": "",
+    "email": "shadman@gmail.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-08-12T05:26:12.290Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1500000$X6ZDTHnfxxKD4e9AQbsjKG$HXZ33h/Zs0oglKoqtCOPlNcxbrKQmErXyFkEKTztTSM=",
+    "last_login": "2026-08-16T08:57:43.391Z",
+    "is_superuser": false,
+    "username": "manager1",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-08-12T05:35:48Z",
+    "groups": [
+      [
+        "Manager"
+      ]
+    ],
+    "user_permissions": [
+      [
+        "add_bankaccount",
+        "accounts",
+        "bankaccount"
+      ],
+      [
+        "change_bankaccount",
+        "accounts",
+        "bankaccount"
+      ],
+      [
+        "delete_bankaccount",
+        "accounts",
+        "bankaccount"
+      ],
+      [
+        "view_bankaccount",
+        "accounts",
+        "bankaccount"
+      ]
+    ]
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1500000$KPaKSYkKbDoIIuVRL5qas4$cbZdsYGBcnMJ0rkDmuuFap85xUyrd1hT1qykA+i9Up0=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "employee1",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-08-12T05:37:57Z",
+    "groups": [
+      [
+        "Employee"
+      ]
+    ],
+    "user_permissions": []
+  }
+},
+{
+  "model": "axes.accesslog",
+  "pk": 1,
+  "fields": {
+    "user_agent": "<unknown>",
+    "ip_address": null,
+    "username": "admin",
+    "http_accept": "<unknown>",
+    "path_info": "<unknown>",
+    "attempt_time": "2026-08-19T09:14:52.043Z",
+    "logout_time": null,
+    "session_hash": "f856c31d237ac14d66cbcd226835358402a5a3f34566517d50b7cc7c04aa6e18"
+  }
+},
+{
+  "model": "axes.accesslog",
+  "pk": 2,
+  "fields": {
+    "user_agent": "<unknown>",
+    "ip_address": null,
+    "username": "admin",
+    "http_accept": "<unknown>",
+    "path_info": "<unknown>",
+    "attempt_time": "2026-08-23T04:26:52.877Z",
+    "logout_time": null,
+    "session_hash": "643c31d061c8df171fe13b09b20c632506fb1a5d37f76e947c810270470c5f84"
+  }
+},
+{
+  "model": "axes.accesslog",
+  "pk": 3,
+  "fields": {
+    "user_agent": "<unknown>",
+    "ip_address": null,
+    "username": "admin",
+    "http_accept": "<unknown>",
+    "path_info": "<unknown>",
+    "attempt_time": "2026-08-23T15:37:08.803Z",
+    "logout_time": null,
+    "session_hash": "ea9a0ec54167b3d440e6bb7d3c5029b6ba4dd8e50279b31a86a3e13fa5f9b761"
+  }
+},
+{
+  "model": "axes.accesslog",
+  "pk": 4,
+  "fields": {
+    "user_agent": "<unknown>",
+    "ip_address": null,
+    "username": "admin",
+    "http_accept": "<unknown>",
+    "path_info": "<unknown>",
+    "attempt_time": "2026-08-24T19:48:01.725Z",
+    "logout_time": null,
+    "session_hash": "4d3f2a4cc25fd0277bf508fe8fbb49ab4d822d405c3f049d3a44a08f2230a98c"
+  }
+},
+{
+  "model": "axes.accesslog",
+  "pk": 5,
+  "fields": {
+    "user_agent": "<unknown>",
+    "ip_address": null,
+    "username": "admin",
+    "http_accept": "<unknown>",
+    "path_info": "<unknown>",
+    "attempt_time": "2026-08-26T18:58:54.201Z",
+    "logout_time": null,
+    "session_hash": "6806996c531423237c87bae1802b32c8770ea5182781fce0c0f4ddd03eb31e97"
+  }
+},
+{
+  "model": "axes.accesslog",
+  "pk": 6,
+  "fields": {
+    "user_agent": "<unknown>",
+    "ip_address": null,
+    "username": "admin",
+    "http_accept": "<unknown>",
+    "path_info": "<unknown>",
+    "attempt_time": "2026-08-27T02:58:08.414Z",
+    "logout_time": null,
+    "session_hash": "9fab3cd6d90ffcba8c0a9f0b4783c52c51d31f80e70a0b4ddb1406fb297661a6"
+  }
+},
+{
+  "model": "axes.accesslog",
+  "pk": 7,
+  "fields": {
+    "user_agent": "<unknown>",
+    "ip_address": null,
+    "username": "admin",
+    "http_accept": "<unknown>",
+    "path_info": "<unknown>",
+    "attempt_time": "2026-08-27T03:02:38.609Z",
+    "logout_time": null,
+    "session_hash": "790ee9e31580d7965a678cd6d421eb2109b5d61ea96947f49b49658845afe420"
+  }
+},
+{
+  "model": "axes.accesslog",
+  "pk": 8,
+  "fields": {
+    "user_agent": "<unknown>",
+    "ip_address": null,
+    "username": "admin",
+    "http_accept": "<unknown>",
+    "path_info": "<unknown>",
+    "attempt_time": "2026-08-29T05:11:06.105Z",
+    "logout_time": null,
+    "session_hash": "49da998a6c8c71082d86a0e15e5e333d6bb3c917c5994027da7a4f7871d37136"
+  }
+},
+{
+  "model": "axes.accesslog",
+  "pk": 9,
+  "fields": {
+    "user_agent": "<unknown>",
+    "ip_address": null,
+    "username": "sidebartest_portal",
+    "http_accept": "<unknown>",
+    "path_info": "<unknown>",
+    "attempt_time": "2026-08-30T14:00:39.092Z",
+    "logout_time": null,
+    "session_hash": "80ca77e75dea7280b26ff12fb87ebd2fa2428047ad7a470ba4e6901334b9b92a"
+  }
+},
+{
+  "model": "axes.accesslog",
+  "pk": 10,
+  "fields": {
+    "user_agent": "<unknown>",
+    "ip_address": null,
+    "username": "sidebar_viewer_test",
+    "http_accept": "<unknown>",
+    "path_info": "<unknown>",
+    "attempt_time": "2026-08-30T14:00:39.614Z",
+    "logout_time": null,
+    "session_hash": "e9d06a884e3f2205d85ab27a5704b9a076bb3c48d6ef34ccecbc99cc2c58c832"
+  }
+},
+{
+  "model": "axes.accesslog",
+  "pk": 11,
+  "fields": {
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    "ip_address": "127.0.0.1",
+    "username": "admin",
+    "http_accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "path_info": "/login/",
+    "attempt_time": "2026-08-30T14:14:40.197Z",
+    "logout_time": "2026-08-30T14:17:10.788Z",
+    "session_hash": "ccf085094e04aaa079e8afb140aabcaa6ba1a17fe7118489948559dece408234"
+  }
+},
+{
+  "model": "axes.accesslog",
+  "pk": 12,
+  "fields": {
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    "ip_address": "127.0.0.1",
+    "username": "admin",
+    "http_accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "path_info": "/login/",
+    "attempt_time": "2026-08-30T14:17:20.010Z",
+    "logout_time": null,
+    "session_hash": "b5fb6dd0f131d5be3f0c3a6c6c64f5c875f475dee02fb4ebaf0f879b36db7f95"
+  }
+},
+{
+  "model": "axes.accesslog",
+  "pk": 13,
+  "fields": {
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    "ip_address": "127.0.0.1",
+    "username": "admin",
+    "http_accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "path_info": "/login/",
+    "attempt_time": "2026-08-30T14:17:53.424Z",
+    "logout_time": null,
+    "session_hash": "4e87a0faed80b9f7ad1bf612ad9191b3b4325707ec8c4072664a3b39c75f984b"
+  }
+},
+{
+  "model": "axes.accesslog",
+  "pk": 14,
+  "fields": {
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    "ip_address": "127.0.0.1",
+    "username": "admin",
+    "http_accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "path_info": "/login/",
+    "attempt_time": "2026-08-31T03:56:03.292Z",
+    "logout_time": null,
+    "session_hash": "d41f5d80d8bc182926bed07d50a76df63fde94f847993d5df7b7729bf287dbbf"
+  }
+},
+{
+  "model": "axes.accesslog",
+  "pk": 15,
+  "fields": {
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    "ip_address": "127.0.0.1",
+    "username": "admin",
+    "http_accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "path_info": "/login/",
+    "attempt_time": "2026-09-01T14:58:55.935Z",
+    "logout_time": null,
+    "session_hash": "a5a61150f3e1a9b0445c2f6c55260f93d5dc2662a9be2954e353790620ec1a83"
+  }
+},
+{
+  "model": "accounts.branch",
+  "pk": 1,
+  "fields": {
+    "name": "Head Office",
+    "code": "HQ-01",
+    "address": "",
+    "phone": "",
+    "is_active": true,
+    "created_at": "2026-08-23T15:36:57.945Z"
+  }
+},
+{
+  "model": "accounts.customer",
+  "pk": 1,
+  "fields": {
+    "branch": 1,
+    "name": "Rahim",
+    "email": "rahim@gmail.com",
+    "phone": "+8801712345678",
+    "nid": "",
+    "address": "Dhaka, Bangladesh",
+    "is_active": true,
+    "created_at": "2026-08-11T05:53:10.651Z"
+  }
+},
+{
+  "model": "accounts.customer",
+  "pk": 2,
+  "fields": {
+    "branch": 1,
+    "name": "Karim",
+    "email": "karim@gmail.com",
+    "phone": "+8801812345678",
+    "nid": "",
+    "address": "Chittagong, Bangladesh",
+    "is_active": true,
+    "created_at": "2026-08-11T06:07:46.312Z"
+  }
+},
+{
+  "model": "accounts.bankaccount",
+  "pk": 1,
+  "fields": {
+    "customer": 1,
+    "branch": 1,
+    "account_number": "ACC10001",
+    "account_type": "SAVINGS",
+    "balance": "7500.00",
+    "status": "ACTIVE",
+    "interest_rate": "4.00",
+    "created_at": "2026-08-12T08:04:19.240Z"
+  }
+},
+{
+  "model": "accounts.bankaccount",
+  "pk": 4,
+  "fields": {
+    "customer": 2,
+    "branch": 1,
+    "account_number": "ACC10002",
+    "account_type": "SAVINGS",
+    "balance": "6000.00",
+    "status": "ACTIVE",
+    "interest_rate": "4.00",
+    "created_at": "2026-08-16T08:10:19.326Z"
+  }
+},
+{
+  "model": "accounts.transaction",
+  "pk": 1,
+  "fields": {
+    "account": 1,
+    "destination_account": null,
+    "transaction_type": "DEPOSIT",
+    "amount": "2000.00",
+    "fee_amount": "0.00",
+    "balance_after": "7000.00",
+    "reference": "TXN-ACC10001-000001",
+    "description": "Initial deposit",
+    "status": "COMPLETED",
+    "reverses": null,
+    "created_at": "2026-08-13T17:32:00.842Z"
+  }
+},
+{
+  "model": "accounts.transaction",
+  "pk": 2,
+  "fields": {
+    "account": 1,
+    "destination_account": null,
+    "transaction_type": "WITHDRAW",
+    "amount": "1000.00",
+    "fee_amount": "0.00",
+    "balance_after": "6000.00",
+    "reference": "TXN-ACC10001-000002",
+    "description": "ATM withdrawal",
+    "status": "COMPLETED",
+    "reverses": null,
+    "created_at": "2026-08-13T17:33:22.381Z"
+  }
+},
+{
+  "model": "accounts.transaction",
+  "pk": 3,
+  "fields": {
+    "account": 1,
+    "destination_account": null,
+    "transaction_type": "DEPOSIT",
+    "amount": "1000.00",
+    "fee_amount": "0.00",
+    "balance_after": "7000.00",
+    "reference": "TXN-ACC10001-000003",
+    "description": "Initial deposit",
+    "status": "COMPLETED",
+    "reverses": null,
+    "created_at": "2026-08-16T06:05:40.156Z"
+  }
+},
+{
+  "model": "accounts.transaction",
+  "pk": 4,
+  "fields": {
+    "account": 1,
+    "destination_account": null,
+    "transaction_type": "DEPOSIT",
+    "amount": "1000.00",
+    "fee_amount": "0.00",
+    "balance_after": "8000.00",
+    "reference": "TXN-ACC10001-000004",
+    "description": "Test deposit",
+    "status": "COMPLETED",
+    "reverses": null,
+    "created_at": "2026-08-16T06:11:35.955Z"
+  }
+},
+{
+  "model": "accounts.transaction",
+  "pk": 5,
+  "fields": {
+    "account": 1,
+    "destination_account": null,
+    "transaction_type": "WITHDRAW",
+    "amount": "500.00",
+    "fee_amount": "0.00",
+    "balance_after": "7500.00",
+    "reference": "TXN-ACC10001-000005",
+    "description": "Test withdrawal",
+    "status": "COMPLETED",
+    "reverses": null,
+    "created_at": "2026-08-16T06:21:40.682Z"
+  }
+},
+{
+  "model": "accounts.transaction",
+  "pk": 6,
+  "fields": {
+    "account": 1,
+    "destination_account": null,
+    "transaction_type": "DEPOSIT",
+    "amount": "2000.00",
+    "fee_amount": "0.00",
+    "balance_after": "9500.00",
+    "reference": "",
+    "description": "initial deposit 2",
+    "status": "COMPLETED",
+    "reverses": null,
+    "created_at": "2026-08-16T06:47:11.251Z"
+  }
+},
+{
+  "model": "accounts.transaction",
+  "pk": 7,
+  "fields": {
+    "account": 1,
+    "destination_account": null,
+    "transaction_type": "WITHDRAW",
+    "amount": "1000.00",
+    "fee_amount": "0.00",
+    "balance_after": "8500.00",
+    "reference": "TXN-ACC10001-61A1DC06",
+    "description": "Test withdrawal 2",
+    "status": "COMPLETED",
+    "reverses": null,
+    "created_at": "2026-08-16T07:13:37.326Z"
+  }
+},
+{
+  "model": "accounts.transaction",
+  "pk": 8,
+  "fields": {
+    "account": 1,
+    "destination_account": 4,
+    "transaction_type": "TRANSFER",
+    "amount": "1000.00",
+    "fee_amount": "0.00",
+    "balance_after": "7500.00",
+    "reference": "TXN-ACC10001-B6A3C1F3",
+    "description": "Test transfer fix",
+    "status": "COMPLETED",
+    "reverses": null,
+    "created_at": "2026-08-16T08:11:24.696Z"
+  }
+},
+{
+  "model": "accounts.chartofaccount",
+  "pk": 1,
+  "fields": {
+    "code": "1001",
+    "name": "Cash and Cash Equivalents",
+    "account_type": "ASSET",
+    "is_active": true,
+    "created_at": "2026-08-24T19:47:47.995Z"
+  }
+},
+{
+  "model": "accounts.chartofaccount",
+  "pk": 2,
+  "fields": {
+    "code": "1101",
+    "name": "Loans Receivable",
+    "account_type": "ASSET",
+    "is_active": true,
+    "created_at": "2026-08-24T19:47:47.996Z"
+  }
+},
+{
+  "model": "accounts.chartofaccount",
+  "pk": 3,
+  "fields": {
+    "code": "2001",
+    "name": "Customer Deposits - Savings",
+    "account_type": "LIABILITY",
+    "is_active": true,
+    "created_at": "2026-08-24T19:47:47.997Z"
+  }
+},
+{
+  "model": "accounts.chartofaccount",
+  "pk": 4,
+  "fields": {
+    "code": "2002",
+    "name": "Customer Deposits - Current",
+    "account_type": "LIABILITY",
+    "is_active": true,
+    "created_at": "2026-08-24T19:47:47.998Z"
+  }
+},
+{
+  "model": "accounts.chartofaccount",
+  "pk": 5,
+  "fields": {
+    "code": "4001",
+    "name": "Interest Income",
+    "account_type": "INCOME",
+    "is_active": true,
+    "created_at": "2026-08-24T19:47:47.998Z"
+  }
+},
+{
+  "model": "accounts.chartofaccount",
+  "pk": 6,
+  "fields": {
+    "code": "4002",
+    "name": "Fee Income",
+    "account_type": "INCOME",
+    "is_active": true,
+    "created_at": "2026-08-24T19:47:47.999Z"
+  }
+},
+{
+  "model": "accounts.chartofaccount",
+  "pk": 7,
+  "fields": {
+    "code": "5001",
+    "name": "Interest Expense",
+    "account_type": "EXPENSE",
+    "is_active": true,
+    "created_at": "2026-08-24T19:47:48.000Z"
+  }
+},
+{
+  "model": "accounts.feerule",
+  "pk": 1,
+  "fields": {
+    "name": "Standard Withdrawal Fee",
+    "transaction_type": "WITHDRAW",
+    "fee_type": "FLAT",
+    "amount": "5.00",
+    "is_active": false,
+    "created_at": "2026-08-26T07:51:11.404Z"
+  }
+},
+{
+  "model": "accounts.feerule",
+  "pk": 2,
+  "fields": {
+    "name": "Standard Transfer Fee",
+    "transaction_type": "TRANSFER",
+    "fee_type": "PERCENTAGE",
+    "amount": "0.50",
+    "is_active": false,
+    "created_at": "2026-08-26T07:51:11.406Z"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 1,
+  "fields": {
+    "action_time": "2026-08-12T05:30:55.399Z",
+    "user": [
+      "admin"
+    ],
+    "content_type": [
+      "auth",
+      "group"
+    ],
+    "object_id": "1",
+    "object_repr": "Manager",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 2,
+  "fields": {
+    "action_time": "2026-08-12T05:31:28.300Z",
+    "user": [
+      "admin"
+    ],
+    "content_type": [
+      "auth",
+      "group"
+    ],
+    "object_id": "2",
+    "object_repr": "Employee",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 3,
+  "fields": {
+    "action_time": "2026-08-12T05:35:48.481Z",
+    "user": [
+      "admin"
+    ],
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "object_id": "2",
+    "object_repr": "manager1",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 4,
+  "fields": {
+    "action_time": "2026-08-12T05:36:51.324Z",
+    "user": [
+      "admin"
+    ],
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "object_id": "2",
+    "object_repr": "manager1",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Groups\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 5,
+  "fields": {
+    "action_time": "2026-08-12T05:37:57.948Z",
+    "user": [
+      "admin"
+    ],
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "object_id": "3",
+    "object_repr": "employee1",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 6,
+  "fields": {
+    "action_time": "2026-08-12T05:38:09.010Z",
+    "user": [
+      "admin"
+    ],
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "object_id": "3",
+    "object_repr": "employee1",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Groups\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 7,
+  "fields": {
+    "action_time": "2026-08-12T07:52:57.361Z",
+    "user": [
+      "admin"
+    ],
+    "content_type": [
+      "auth",
+      "group"
+    ],
+    "object_id": "1",
+    "object_repr": "Manager",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Permissions\"]}}]"
+  }
+}
+]
