@@ -1,9 +1,24 @@
 .venv/
 __pycache__/
 *.pyc
+
+# Database
 db.sqlite3
+db.sqlite3-*
+
+# Environment / secrets
 .env
+
+# Logs
 *.log
+
+# Django generated files
 staticfiles/
 media/
+
+# IDE
 .vscode/
+
+# Database fixtures / exported data
+sqlite_data.json
+sqlite_data_postgres.json
